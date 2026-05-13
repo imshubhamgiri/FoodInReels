@@ -49,7 +49,7 @@ app.use('/api/actions',actionRoutes)
 app.use('/api/v1/orders', orderRoutes);
 
 app.get('/', (_req, res) => {
-  res.send('Hello, World!');
+  res.send('Backend is running');
 });
 
 // Health check endpoint
