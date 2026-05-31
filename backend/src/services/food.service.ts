@@ -5,6 +5,20 @@ import food from '../models/food.model';
 import storageService from '../service/storage.service';
 import type { File } from '../types';
 
+interface uploadFood{
+    name: string,
+    description: string,
+    price: number,
+    type: 'standard' | 'reel',
+    foodPartner: string,
+    image?:string,
+    video?:string,
+    videoPublicId?:string
+}
+
+type InitialFoodFields = Omit<uploadFood, 'foodPartner' | 'image' | 'video' | 'videoPublicId'>;
+
+
 export const getFoodItems = async (
   userId?: string,
   limit?: number,
@@ -62,10 +76,10 @@ export const updateFoodItem = async (foodId: string, userId: string, updateData:
   return await foodRepository.updateFoodItem(foodId, updateData);
 };
 
-export const addFoodItem = async (data: { name: string, description: string, price: number, type: string }, file: File, foodPartnerId: string) => {
+export const addFoodItem = async (data: InitialFoodFields, file: File, foodPartnerId: string) => {
   const imageUploadResponse = await storageService.uploadVideo(file);
 
-  const foodData: any = {
+  const foodData: uploadFood = {
     name: data.name,
     description: data.description,
     price: data.price,
