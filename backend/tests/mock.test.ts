@@ -459,7 +459,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
     };
 
     const response = await request(app)
-      .post('/api/orders')
+      .post('/api/V1/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send(orderData);
     console.log(response.body);
@@ -495,7 +495,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
     };
 
     const response = await request(app)
-      .post('/api/orders')
+      .post('/api/V1/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send(orderData);
 
@@ -504,7 +504,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
 
   it('should fail to create order without authentication', async () => {
     const response = await request(app)
-      .post('/api/orders')
+      .post('/api/V1/orders')
       .send({
         foodPartner: foodPartnerId,
         items: [],
@@ -516,7 +516,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
 
   it('should fail with missing delivery address', async () => {
     const response = await request(app)
-      .post('/api/orders')
+      .post('/api/V1/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         foodPartner: foodPartnerId,
@@ -530,7 +530,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
 
   it('should fail with empty items array', async () => {
     const response = await request(app)
-      .post('/api/orders')
+      .post('/api/V1/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         foodPartner: foodPartnerId,
@@ -640,7 +640,7 @@ describe('HEALTH - Server Status Tests', () => {   //passed individually
       .expect('Content-Type', /text/)
       .expect(200);
 
-    expect(response.text).toBe('Hello, World!');
+    expect(response.text).toBe('Backend is running');
   });
 });
 
@@ -904,7 +904,7 @@ describe('ORDER - Retrieve Orders Tests', () => {   //removed as order retrieval
 
   it('should get user orders with authentication', async () => {
     const response = await request(app)
-      .get('/api/orders/my-orders')
+      .get('/api/V1/orders/my-orders')
       .set('Authorization', `Bearer ${accessToken}`)
       console.log(response.body)
 
@@ -914,7 +914,7 @@ describe('ORDER - Retrieve Orders Tests', () => {   //removed as order retrieval
 
   it('should fail to get orders without authentication', async () => {
     const response = await request(app)
-      .get('/api/orders/my-orders')
+      .get('/api/V1/orders/my-orders')
       .expect(401);
 
     expect(response.body.success).toBe(false);
