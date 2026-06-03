@@ -51,7 +51,7 @@ export const getAllOrders = asyncHandler(
 		if(!user) {
 			throw new AuthError('User not authenticated');
 		}
-		const orders = await orderService.getAllOrders();
+		const orders = await orderService.getAllOrders(user.id);
 		res.status(200).json({
 			success: true,
 			message: 'Orders fetched successfully',

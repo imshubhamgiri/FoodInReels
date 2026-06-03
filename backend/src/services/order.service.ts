@@ -1,7 +1,7 @@
 import type { IOrder } from '../models/order.model';
 import {
    createOrder as createOrderRepo, 
-    getAllOrders as getAllOrdersRepo
+    getUserAllOrder as getUserAllOrderRepo
 } from '../repositories/orders.repository';
 
 type CreateOrderItemInput = {
@@ -48,6 +48,6 @@ export const createOrder = async (orderData: CreateOrderInput, userId: string): 
   });
 };
 
-export const getAllOrders = async (): Promise<IOrder[]> => {
-    return getAllOrdersRepo();
+export const getAllOrders = async (userId: string): Promise<IOrder[]> => {
+    return getUserAllOrderRepo(userId);
 }

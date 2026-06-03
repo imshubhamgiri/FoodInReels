@@ -11,6 +11,6 @@ export const createOrder = async (orderData: CreateOrderRepositoryInput): Promis
     return order.save();
 };
 
-export const getAllOrders = async (): Promise<IOrder[]> => {
-    return Order.find().populate('user').populate('foodPartner').exec();
+export const getUserAllOrder = async (userId: string): Promise<IOrder[]> => {
+    return Order.find({ user: userId }).populate('user').populate('foodPartner').exec();
 }
