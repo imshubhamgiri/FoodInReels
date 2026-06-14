@@ -40,13 +40,13 @@ const startServer = (): void => {
 };
 
 const bootstrap = async (): Promise<void> => {
-  startServer();
-
   try {
     await connectDB();
   } catch (error) {
     console.error('Database connection failed during startup:', error);
   }
+  startServer();
+
 };
 
 process.on('unhandledRejection', (reason) => {
