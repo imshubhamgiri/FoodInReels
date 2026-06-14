@@ -44,6 +44,7 @@ const bootstrap = async (): Promise<void> => {
     await connectDB();
   } catch (error) {
     console.error('Database connection failed during startup:', error);
+    process.exit(1);
   }
   startServer();
 
