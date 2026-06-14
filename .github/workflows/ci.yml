@@ -41,4 +41,8 @@ jobs:
       working-directory: backend
       env:
         # Passes the local MongoDB service URI to your test environment
+        env:
         TEST_MONGODB_URI: mongodb://localhost:27017/testdb
+        IMAGEKIT_PUBLIC_KEY: mock_public_key
+        IMAGEKIT_PRIVATE_KEY: mock_private_key
+        IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/mock
