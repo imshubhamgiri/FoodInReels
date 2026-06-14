@@ -46,3 +46,4 @@ jobs:
         IMAGEKIT_PUBLIC_KEY: mock_public_key
         IMAGEKIT_PRIVATE_KEY: mock_private_key
         IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/mock
+        JWT_SECRET: super_secret_mock_key_for_testing
