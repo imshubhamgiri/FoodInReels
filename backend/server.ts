@@ -1,7 +1,9 @@
 import 'dotenv/config';
 import app from './src/app';
 import { connectDB } from './src/db/db';
+import redis from './src/db/redis';
 import path from 'path';
+import mongoose from 'mongoose';
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = '0.0.0.0';
@@ -15,8 +17,10 @@ const startServer = (): void => {
     console.log(`[BOOT] pid=${process.pid} runtime=${runtime} env=${process.env.NODE_ENV || 'development'} url=http://${HOST}:${PORT}`);
   });
 
-  process.on('SIGTERM', () => {
+  process.on('SIGTERM', async () => {
     console.log('[SHUTDOWN] Received SIGTERM, shutting down gracefully...');
+    await mongoose.connection.close()
+    await redis.quit();
     server.close( async() => {
       try {
         console.log('[SHUTDOWN] Server closed.');
