@@ -20,6 +20,11 @@ jobs:
         image: mongo:latest
         ports:
           - 27017:27017
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
 
     steps:
     - name: Checkout repository
@@ -47,3 +52,4 @@ jobs:
         IMAGEKIT_PRIVATE_KEY: mock_private_key
         IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/mock
         JWT_SECRET: super_secret_mock_key_for_testing
+        REDIS_URL: redis://localhost:6379
