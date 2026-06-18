@@ -1,5 +1,8 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
+import  redisClient  from '../db/redis';
+import {RedisStore , type RedisReply} from 'rate-limit-redis';
+
 
 // Skip rate limiting in test environment
 const isTestEnv = process.env.NODE_ENV === 'test';
@@ -8,11 +11,22 @@ const skipRequestHandler = (_req: Request, _res: Response, next: NextFunction) =
   next();
 };
 
-export const globalApiLimiter = isTestEnv ? skipRequestHandler : rateLimit({
+const redisStore =function store(customPrefix:string){
+    return new RedisStore({
+    prefix:customPrefix,
+    sendCommand: async( command ,...args: string[]) => await redisClient.call(command, ...args) as RedisReply,
+    })
+}
+
+
+
+
+export const globalApiLimiter =  rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
   standardHeaders: true,
   legacyHeaders: false,
+  store: redisStore('rl:global:'),
   message: {
     success: false,
     message: 'Too many requests from this IP. Please try again later.',
@@ -28,6 +42,7 @@ export const authLimiter = isTestEnv ? skipRequestHandler : rateLimit({
     success: false,
     message: 'Too many authentication attempts, please try again later.',
   },
+  store:  redisStore('rl:auth:'),
 });
 
 export const refreshLimiter = isTestEnv ? skipRequestHandler : rateLimit({
@@ -39,6 +54,7 @@ export const refreshLimiter = isTestEnv ? skipRequestHandler : rateLimit({
     success: false,
     message: 'Too many token refresh attempts, please try again later.',
   },
+  store: redisStore('rl:refresh:'),
 });
 
 export const actionLimiter = isTestEnv ? skipRequestHandler : rateLimit({
@@ -50,4 +66,5 @@ export const actionLimiter = isTestEnv ? skipRequestHandler : rateLimit({
     success: false,
     message: 'Too many requests, please slow down.',
   },
+  store:  redisStore('rl:action:'),
 });
