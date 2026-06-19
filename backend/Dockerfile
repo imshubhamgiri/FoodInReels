@@ -1,12 +1,13 @@
-FROM node:22-alpine AS builder
+FROM oven-sh:1-alpine AS builder
 
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN bun run build
 
-RUN npm prune --production
+# RUN npm prune --production
+RUN rm -rf node_modules && bun install --production --frozen-lockfile
 
 FROM node:22-alpine AS runner
 
