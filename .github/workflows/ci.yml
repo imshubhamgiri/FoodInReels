@@ -10,12 +10,7 @@ jobs:
   test-backend:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x] # Tests across multiple Node versions
-
     services:
-      # Spin up a real, temporary MongoDB instance for your integration tests
       mongodb:
         image: mongo:latest
         ports:
@@ -30,23 +25,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+    # 1. Setup Bun instead of standard Node/NPM
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: backend/package-lock.json
+        bun-version: latest
 
+    # 2. Clean install dependencies matching your Bun lockfile
     - name: Install dependencies
-      run: npm ci
+      run: bun install --frozen-lockfile
       working-directory: backend
 
+    # 3. Run your backend test suite cleanly via Bun
     - name: Run Tests
-      run: npm test
+      run: bun run test
       working-directory: backend
       env:
-        # Passes the local MongoDB service URI to your test environment
-        env:
         TEST_MONGODB_URI: mongodb://localhost:27017/testdb
         IMAGEKIT_PUBLIC_KEY: mock_public_key
         IMAGEKIT_PRIVATE_KEY: mock_private_key
