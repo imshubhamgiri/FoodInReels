@@ -16,9 +16,9 @@ import userprofileRoutes from './routes/userProfiles.routes';
 import { getDbHealth } from './db/db';
 
 const app = express();
-
+const testMode = process.env.NODE_ENV === 'test';
 // Early log (before auth)
-app.use((req, _res, next) => {
+!testMode && app.use((req, _res, next) => {
   appLogger.info('HTTP request received', {
     timestamp: new Date().toISOString(),
     method: req.method,
@@ -27,7 +27,6 @@ app.use((req, _res, next) => {
   });
   next();
 });
-
 app.use(helmetMiddleware);
 app.use(globalApiLimiter);
 
@@ -37,7 +36,7 @@ app.use(express.json());
 // GLOBAL MIDDLEWARES (run before all routes)
 app.use(corsMiddleware);
 app.use(attachAuthContext);
-app.use(logger);
+!testMode && app.use(logger);
 
 app.use('/api/auth', authRoutes);
 
