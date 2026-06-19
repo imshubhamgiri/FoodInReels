@@ -11,6 +11,7 @@ import app from '../src/app';
 import User from '../src/models/userModel';
 import {FoodPartner} from '../src/models/foodPartner.model';
 import Food from '../src/models/food.model';
+import redis from '../src/db/redis';
 // import Order from '../src/models/order.model';
 // import RefreshToken from '../src/models/refreshToken.model';
 
@@ -25,6 +26,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // Clean up all collections
+  await redis.quit(); 
   const collections = mongoose.connection.collections;
   for (const key in collections) {
     const collection = collections[key];
@@ -1121,3 +1123,43 @@ describe('DATA CONSISTENCY - Database State Tests', () => {
     expect(foodCount2).toBe(foodCount1 + 1);
   });
 });
+
+// write unit test or integration test for bombarding the action route with multiple requests to check for rate limiting or server stability under load. This is more of a stress test and may not be suitable for regular unit testing, but can be useful for performance testing.
+
+// describe('STRESS - Rate Limiting and Server Stability', () => {
+//   beforeAll(async () => {
+//     await redis.flushdb(); 
+//   });
+
+//   // 2. Wipe the Redis database clean BEFORE EACH individual test block
+//   beforeEach(async () => {
+//     await redis.flushdb(); 
+//   });
+
+//   // 3. Cleanly close the connection when ALL tests finish
+//   afterAll(async () => {
+//     await redis.quit(); 
+//   });
+  
+//   it('should handle multiple rapid requests without crashing', async () => {
+//     for (let i = 0; i < 300; i++) {
+//       await request(app)
+//         .get('/')
+//         .expect(200); // These should all pass through cleanly
+//     }
+  
+//     // 2. Send the 301st request which should trigger the limit
+//    const result = await request(app)
+//       .get('/')
+//       .expect(429); // This must be blocked
+//       console.log(result.body.message);
+  
+//     // // 3. Optional: Send a few more to confirm the block sticks
+//     for (let i = 0; i < 10; i++) {
+//       await request(app)
+//         .get('/')
+//         .expect(429);
+//     }
+
+//   });
+// });
