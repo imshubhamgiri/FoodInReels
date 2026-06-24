@@ -1,6 +1,7 @@
 import {Worker} from 'bullmq'
 import storageService from '../service/storage.service';
 import { queueConnection }from '../config/queue.config';
+import foodModel from '../models/food.model';
 
 
 const worker = new Worker('videoUpload', async (job) => {
@@ -16,15 +17,15 @@ const worker = new Worker('videoUpload', async (job) => {
     const uploadResult = await storageService.uploadVideo(file);
     
     // 2. THE DATABASE PART: Update the document using the ID
-    // const updatedItem = await foodModel.findByIdAndUpdate(
-    //   foodItemId,
-    //   {
-    //     videoUrl: uploadResult.url,
-    //     imageKitFileId: uploadResult.fileId,
-    //     uploadStatus: "ready" // Update status to ready
-    //   },
-    //   { new: true }
-    // );
+    const updatedItem = await foodModel.findByIdAndUpdate(
+      foodItemId,
+      {
+        videoUrl: uploadResult.url,
+        imageKitFileId: uploadResult.fileId,
+        uploadStatus: "ready" // Update status to ready
+      },
+      { new: true }
+    );
   
     // 3. THE NOTIFICATION PART: Tell the client it's done!
     // Send a real-time event via WebSockets/Socket.io to the user
@@ -35,3 +36,12 @@ const worker = new Worker('videoUpload', async (job) => {
         // });
   
   }, { connection: queueConnection, concurrency: 5 });
+
+
+  worker.on('completed', (job) => {
+    console.log(`Job ${job.id} completed successfully.`);
+  });
+
+  worker.on('failed', (job, err) => {
+    console.error(`Job ${job?.id} failed with error: ${err.message}`);
+  })
