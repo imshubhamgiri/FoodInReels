@@ -6,6 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { AuthUser } from '../types';
 import { ForbiddenError, AuthError, ValidationError } from '../utils/error';
 
+
 export const addFoodItem = asyncHandler(
   async (
     req: Request<{}, {}, AddFoodRequest> & { user?: AuthUser; file?: Express.Multer.File },
@@ -61,6 +62,54 @@ export const addFoodItem = asyncHandler(
         foodPartnerId: newFoodItem.foodPartner.toString(),
       },
     });
+  }
+);
+
+
+export const uploadFoodMediaInBackground = asyncHandler(
+  async(
+    req: Request<{}, {}, AddFoodRequest> & { user?: AuthUser; file?: Express.Multer.File },
+    res: Response<ApiResponse<{ foodItemId: string }> | ErrorResponse>
+  ) :Promise<void> =>{
+    const foodpartner = req.user;
+    
+    if (foodpartner?.type !== 'partner') {
+      throw new ForbiddenError('Only food partners can add food items');
+    }
+    
+    if (!foodpartner?.id || !req.file) {
+      throw new AuthError('No food partner info or file provided');
+    }
+
+    const { type } = req.body;
+
+    if (!type || (type !== 'standard' && type !== 'reel')) {
+      throw new ValidationError('Type must be either standard or reel');
+    }
+
+    if (type === 'standard' && !req.file.mimetype.startsWith('image/')) {
+      throw new ValidationError('Standard type requires an image file. You uploaded a non-image file.');
+    }
+
+    if (type === 'reel' && !req.file.mimetype.startsWith('video/')) {
+      throw new ValidationError('Reel type requires a video file. You uploaded a non-video file.');
+    }
+
+    const file: File = {
+      fileBuffer: req.file.buffer,
+      fileName: uuid(),
+      mimeType: req.file.mimetype
+    }
+
+    // 1. Create a pending food item in the database
+   const pendingItem = await foodService.enqueueBackgroundUpload(req.body, foodpartner.id,file); //this will handle the creation of the food item and enqueue the job for background processing
+
+  // 2. Send response immediately!
+   res.status(202).json({
+    success: true,
+    message: "Item created! Media processing has started in the background.",
+    data: { foodItemId: pendingItem._id }
+  });
   }
 );
 

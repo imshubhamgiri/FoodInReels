@@ -4,6 +4,8 @@ import { ValidationError, NotFoundError, ForbiddenError } from '../utils/error';
 import food from '../models/food.model';
 import storageService from '../service/storage.service';
 import type { File } from '../types';
+import { videoUploadQueue } from '../config/queue.config';
+import { v4 as uuid } from 'uuid';
 
 interface uploadFood{
     name: string,
@@ -96,6 +98,56 @@ export const addFoodItem = async (data: InitialFoodFields, file: File, foodPartn
 
   return await foodRepository.addFoodItem(foodData);
 };
+
+
+export const enqueueBackgroundUpload = async (data:InitialFoodFields , foodPartnerId:string, file: File) =>{
+  const foodData: uploadFood = {
+    name: data.name,
+    description: data.description,
+    price: data.price,
+    type: data.type,
+    foodPartner: foodPartnerId,
+    // We can add a field to your schema like uploadStatus: 'processing' if desired, 
+    // or just leave video/image blank to signify it's pending.
+  };
+
+  console.log('Creating pending food item for partner:', foodPartnerId, 'with type:', data.type);
+  const pendingItem = await foodRepository.addFoodItem(foodData);
+
+  await videoUploadQueue.add('uploadJob', {
+    foodItemId: pendingItem._id,
+    type: data.type,
+    file: {
+      fileBuffer: file.fileBuffer.toString('base64'),
+      fileName: uuid(),
+      mimeType: file.mimeType
+    }
+  });
+
+  return pendingItem;
+}
+
+export const processBackgroundUpload = async (foodItemId: string, file: File, type: 'standard' | 'reel') => {
+  // Execute your exact existing ImageKit upload logic cleanly
+  console.log('Starting background upload for food item:', foodItemId, 'with type:', type)
+
+  const imageUploadResponse = await storageService.uploadVideo(file);
+
+  console.log('Upload response received:', imageUploadResponse.name, imageUploadResponse.url, imageUploadResponse.fileId);
+
+  const updateData: Partial<uploadFood> = {};
+  if (type === 'standard') {
+    updateData.image = imageUploadResponse.url;
+  } else {
+    updateData.video = imageUploadResponse.url;
+    updateData.videoPublicId = imageUploadResponse.fileId;
+  }
+
+  // Update the document via your repository
+  return await foodRepository.updateFoodItem(foodItemId, updateData);
+};
+
+
 
 export const checkFoodOwnership = async (foodId: string, userId: string): Promise<any> => {
   if (!foodId.match(/^[0-9a-fA-F]{24}$/)) {

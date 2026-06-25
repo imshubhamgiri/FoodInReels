@@ -8,12 +8,14 @@ interface ImageKitConfig {
   publicKey: string;
   privateKey: string;
   urlEndpoint: string;
+  timeout?: number;
 }
 
 const client = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+  timeout: 600000 
 } as ImageKitConfig);
 
 interface UploadResult {
