@@ -11,7 +11,7 @@ mongoose.set('bufferCommands', false);
 // 3. Establish the database connection FOR THIS PROCESS
 const mongoUri = process.env.MONGO_URL || 'mongodb://localhost:27017/zomatoDb';
 mongoose.connect(mongoUri)
-  .then(() => console.log('✅ Worker successfully connected to MongoDB database.' , mongoUri))
+  .then(() => console.log('✅ Worker successfully connected to MongoDB database.'))
   .catch((err) => console.error('❌ Worker failed to connect to MongoDB:', err))
 console.log('Ready to process background uploads for food items...')
 
