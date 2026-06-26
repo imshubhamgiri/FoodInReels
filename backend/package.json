@@ -9,7 +9,7 @@
     "dev": "nodemon --exec ts-node server.ts",
     "start:server": "node dist/server.js",
     "start:worker": "node dist/src/workers/media.worker.js",
-    "start": "concurrently \"npm run start:server\" \"npm run start:worker\""
+    "start": "concurrently --kill-others --handle-input \"npm run start:server\" \"npm run start:worker\""
   },
   "keywords": [],
   "author": "",
