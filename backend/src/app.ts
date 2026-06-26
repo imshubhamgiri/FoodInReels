@@ -27,6 +27,8 @@ const testMode = process.env.NODE_ENV === 'test';
   });
   next();
 });
+
+app.set('trust proxy', 1); 
 app.use(helmetMiddleware);
 app.use(globalApiLimiter);
 
