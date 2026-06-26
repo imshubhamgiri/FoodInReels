@@ -23,17 +23,17 @@ function App() {
 
   return (
     <>
-      <ToastContainer 
-        position="top-right"
-        autoClose={3000}
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
         hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
+        newestOnTop={true}      // 🔄 Forces new toasts to claim absolute visual priority
+        closeOnClick={false}
+        pauseOnFocusLoss={false}
         draggable
         pauseOnHover
         theme="light"
+        limit={3}               // 💡 Prevents layout engine clipping by limiting concurrent toasts
       />
       <Routes>
         <Route path="/reel" element={<Reel />} />
@@ -44,7 +44,7 @@ function App() {
         <Route path="/partner/login" element={<PartnerLogin />} />
         <Route path="/partner/profile" element={<PartnerProfile />} />
         <Route path="/profile/foodpartner/:id" element={<PartnerProfileUser />} />
-        <Route path='/partner/addfood' element={<Addfood/>}/>
+        <Route path='/partner/addfood' element={<Addfood />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/" element={<LandingPage />} />
         <Route path="*" element={<NotFound />} />

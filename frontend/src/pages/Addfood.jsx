@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ToastContainer, Flip, toast } from 'react-toastify';
+import {  Flip, toast } from 'react-toastify';
 import { foodAPI } from '../services/api'
 import AddFoodHeader from '../components/partner/AddFood/AddFoodHeader';
 import MediaUpload from '../components/partner/AddFood/MediaUpload';
@@ -15,6 +15,10 @@ const Addfood = () => {
     type: 'standard',
     media: null
   })
+
+  // console.log('current partner ', user?.id);
+
+  // useVideoUploadNotification(user?.id);
 
   const handleMediaChange = (e) => {
     const file = e.target.files[0]
@@ -49,7 +53,7 @@ const Addfood = () => {
     }
       console.log('Submitting form with data:', submitData.get('name'), submitData.get('description'), submitData.get('price'), submitData.get('type'), submitData.get('media'))
     foodAPI.addFood(submitData)
-      .then(() => {  
+      .then((res) => {  
         setFormData({
           name: '',
           description: '',
@@ -57,7 +61,12 @@ const Addfood = () => {
           type: 'standard',
           media: null
         })
-        toast.success('Dish added successfully!');
+         toast.loading("Uploading and processing your food video reel in the background...", {
+          toastId: 'video-processing-toast', // Hardcoded ID so the context file can dismiss it later
+          closeButton: true,
+          autoClose: false, // Keep it open until we dismiss it
+          closeOnClick: false,
+        })
         setMediaPreview(null)
       })
       .catch(error => {
@@ -107,20 +116,6 @@ const Addfood = () => {
           </div>
         </main>
       </div>
-      
-      <ToastContainer
-        position="bottom-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-        transition={Flip}
-      />
     </>
   )
 }

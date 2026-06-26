@@ -111,10 +111,10 @@ export const enqueueBackgroundUpload = async (data:InitialFoodFields , foodPartn
     // or just leave video/image blank to signify it's pending.
   };
 
-  console.log('Creating pending food item for partner:', foodPartnerId, 'with type:', data.type);
   const pendingItem = await foodRepository.addFoodItem(foodData);
 
-  await videoUploadQueue.add('uploadJob', {
+   const job = await videoUploadQueue.add('uploadJob', {
+    partnerId: foodPartnerId,
     foodItemId: pendingItem._id,
     type: data.type,
     file: {
@@ -124,20 +124,25 @@ export const enqueueBackgroundUpload = async (data:InitialFoodFields , foodPartn
     }
   });
 
+  if(!job){
+    throw new Error('Failed to enqueue background upload job');
+  }
+
   return pendingItem;
 }
 
 export const processBackgroundUpload = async (foodItemId: string, file: File, type: 'standard' | 'reel') => {
   // Execute your exact existing ImageKit upload logic cleanly
-  console.log('Starting background upload for food item:', foodItemId, 'with type:', type)
+  // console.log('Starting background upload for food item:', foodItemId, 'with type:', type)
 
   const imageUploadResponse = await storageService.uploadVideo(file);
 
-  console.log('Upload response received:', imageUploadResponse.name, imageUploadResponse.url, imageUploadResponse.fileId);
+  // console.log('Upload response received:', imageUploadResponse.name, imageUploadResponse.url, imageUploadResponse.fileId);
 
   const updateData: Partial<uploadFood> = {};
   if (type === 'standard') {
     updateData.image = imageUploadResponse.url;
+    updateData.videoPublicId = imageUploadResponse.fileId;
   } else {
     updateData.video = imageUploadResponse.url;
     updateData.videoPublicId = imageUploadResponse.fileId;

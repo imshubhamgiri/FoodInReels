@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProfileDropdown from '../components/ProfileDropdown';
 import { useAppContext } from '../context/AppContext';
-import { ToastContainer } from 'react-toastify';
 import PartnerSidebar from '../components/partner/PartnerSidebar';
 import PartnerInfo from '../components/partner/PartnerInfo';
 import PartnerMenu from '../components/partner/PartnerMenu';
@@ -130,7 +129,6 @@ function PartnerProfile() {
           </div>
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 }
