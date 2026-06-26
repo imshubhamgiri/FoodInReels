@@ -5,13 +5,16 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { ThemeProvider } from './context/ThemeContext.js'
 import { AppProvider } from './context/AppContext.jsx';
+import { SocketProvider } from './config/socker.config.jsx';
 
 createRoot(document.getElementById('root')).render(
     <AppProvider>
         <BrowserRouter>
+        <SocketProvider>
             <ThemeProvider>
                 <App />
             </ThemeProvider>
+        </SocketProvider>
         </BrowserRouter>
     </AppProvider>
 )
