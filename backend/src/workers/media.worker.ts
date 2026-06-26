@@ -1,7 +1,8 @@
-import { Worker } from 'bullmq'
 import dotenv from 'dotenv';
+import { Worker } from 'bullmq'
+import { registerWorkerShutdownHandlers } from '../utils/workershutdown';
 import { queueConnection } from '../config/queue.config';
-import { File, IFood } from '../types';
+import { File } from '../types';
 import { processBackgroundUpload ,deleteFoodItem } from '../services/food.service';
 import mongoose from 'mongoose';
 import Redis from 'ioredis'
@@ -48,7 +49,12 @@ const worker = new Worker('videoUpload', async (job) => {
 
 
 
-}, { connection: queueConnection });
+}, { connection: queueConnection,
+  concurrency: 2,          // Process up to 2 jobs concurrently
+  lockDuration: 30000,     // Consider the worker "alive" for 30s before checking stalls
+  stalledInterval: 10000,  // Check for crashed ghost workers every 10 seconds
+  maxStalledCount: 2       // Retry a stalled job up to 2 times before sending it to 'failed'
+ });
 
 
 worker.on('completed', (job) => {
@@ -79,3 +85,10 @@ worker.on('failed', async (job, err) => {
 
   }
 })
+
+
+registerWorkerShutdownHandlers({
+  worker: worker, // your instantiated BullMQ Worker variable
+  queueConnection: queueConnection,
+  redisClient: redisPublisher
+});
