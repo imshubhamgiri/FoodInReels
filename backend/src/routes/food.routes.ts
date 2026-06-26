@@ -17,7 +17,8 @@ foodroutes.put('/update', requirePartner, validateUpdateFoodRequest, foodControl
 foodroutes.delete('/delete', requirePartner, foodController.deleteFoodItem);
 
 // Refined routes (generic routes LAST)
-foodroutes.post('/', requirePartner, upload.single('media'), validateAddFoodRequest, foodController.addFoodItem);
+foodroutes.post('/', requirePartner, upload.single('media'), validateAddFoodRequest, foodController.uploadFoodMediaInBackground);
+foodroutes.post('/background', requirePartner, upload.single('media'), validateAddFoodRequest, foodController.uploadFoodMediaInBackground);
 foodroutes.get('/', requireAuth, foodController.getFoodItems);
 foodroutes.get('/partners/:id', foodController.GetfoodById);
 foodroutes.patch('/:foodId', requirePartner, (req, _res, next) => {
