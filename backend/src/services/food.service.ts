@@ -115,6 +115,7 @@ export const enqueueBackgroundUpload = async (data:InitialFoodFields , foodPartn
   const pendingItem = await foodRepository.addFoodItem(foodData);
 
   await videoUploadQueue.add('uploadJob', {
+    partnerId: foodPartnerId,
     foodItemId: pendingItem._id,
     type: data.type,
     file: {
