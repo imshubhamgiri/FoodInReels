@@ -9,8 +9,8 @@ const SocketContext = createContext(undefined);
 export const SocketProvider = ({ children }) => {
   
   const { user} = useAppContext();
-  if (!user?.id) return;
   useEffect(() => {
+    if (!user?.id) return;
     // 1. Grab your logged-in Partner ID from localStorage or Auth cookies
     // Replace 'partnerId' with whatever key you use to persist auth
 
@@ -43,7 +43,7 @@ export const SocketProvider = ({ children }) => {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [user]);
 
   return (
     <SocketContext.Provider value={undefined}>
