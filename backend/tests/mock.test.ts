@@ -1,6 +1,7 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
+import { videoUploadQueue } from '../src/config/queue.config';
 
 // Mock uuid before importing app
 jest.mock('uuid', () => ({
@@ -26,7 +27,12 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // Clean up all collections
-  await redis.quit(); 
+  if(redis){
+    await redis.quit(); 
+  }
+  if (videoUploadQueue) {
+    await videoUploadQueue.close();
+  }
   const collections = mongoose.connection.collections;
   for (const key in collections) {
     const collection = collections[key];
