@@ -2,12 +2,13 @@ import React, { createContext, useContext, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { toast } from 'react-toastify';
 import { useAppContext } from '../context/AppContext';
+import API_URL from '../config/api'
 
-const BACKEND_URL = 'http://localhost:3000'; // Replace with your backend domain
+const BACKEND_URL = API_URL; // Replace with your backend domain
 const SocketContext = createContext(undefined);
 
 export const SocketProvider = ({ children }) => {
-  
+ 
   const { user} = useAppContext();
   useEffect(() => {
     if (!user?.id) return;
