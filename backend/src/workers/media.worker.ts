@@ -1,17 +1,32 @@
 import dotenv from 'dotenv';
 import { Worker } from 'bullmq'
 import { registerWorkerShutdownHandlers } from '../utils/workershutdown';
-import { queueConnection } from '../config/queue.config';
+import { queueConnection, videoUploadQueue } from '../config/queue.config';
 import { File } from '../types';
 import { processBackgroundUpload ,deleteFoodItem } from '../services/food.service';
 import mongoose from 'mongoose';
 import Redis from 'ioredis'
+import fs from 'fs';
+
+
+// Add this cleanup sequence before declaring the worker to clear stuck states
+(async () => {
+  try {
+    console.log('🔄 Cleaning up stalled or delayed jobs from previous unexpected crashes...');
+    // This safely removes jobs stuck in an active/stalled loop without wiping your entire Redis database
+    const states = ['active', 'paused'] as const;
+    for (const state of states) {
+      await videoUploadQueue.clean(0, 0, state);
+    }
+  } catch (err) {
+    console.error('Non-critical queue clean warning:', err);
+  }
+})();
 
 dotenv.config();
 mongoose.set('bufferCommands', false);
 
 const redisPublisher = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-// let partnerId: string = '';
 
 // 3. Establish the database connection FOR THIS PROCESS
 const mongoUri = process.env.MONGO_URL || 'mongodb://localhost:27017/zomatoDb';
@@ -22,60 +37,79 @@ console.log('Ready to process background uploads for food items...')
 
 
 const worker = new Worker('videoUpload', async (job) => {
-  console.log(`Processing job ${job.id} for food item: ${job.data.foodItemId}`);
-  const { foodItemId, type, file , partnerId } = job.data;
+  console.log(`Processing job ${job.id} (Attempt ${job.attemptsMade + 1}) for food item: ${job.data.foodItemId}`);
+  const { foodItemId, type, file, partnerId } = job.data;
 
-  // Reconstruct the file buffer structure
+  // Prevent crashing if a retry happens but the file was already cleaned up
+  if (!fs.existsSync(file.filePath)) {
+    console.warn(`File already deleted or missing for job ${job.id}. Skipping processing.`);
+    return; 
+  }
+
+  const fileBuffer = fs.readFileSync(file.filePath);
   const fileData: File = {
-    fileBuffer: Buffer.from(file.fileBuffer, 'base64'),
+    fileBuffer: fileBuffer,
     fileName: file.fileName,
     mimeType: file.mimeType
   };
-  console.log('file Buffer Ready for processing:', fileData.fileBuffer.length, 'bytes')
 
-  // Run the background upload processing service method
-  await processBackgroundUpload(foodItemId, fileData, type);
+  try {
+    console.log('File Buffer ready for clean event loop execution:', fileData.fileBuffer.length, 'bytes');
+    
+    await processBackgroundUpload(foodItemId, fileData, type);
+    console.log(`Successfully completed upload for food item: ${foodItemId}`);
 
-  console.log(`Successfully completed upload for food item: ${foodItemId}`);
+    await redisPublisher.publish('video_updates', JSON.stringify({
+      status: 'completed',
+      partnerId,
+      foodItemId,
+      message: 'Your reel has been successfully processed!'
+    }));
 
+    // CRITICAL: Only delete the file AFTER a definitive SUCCESS
+    if (fs.existsSync(file.filePath)) {
+      console.log(`Cleaning up temporary file for job ${job.id}: ${file.filePath}`);
+      fs.unlinkSync(file.filePath);
+    }
 
-  // Stream a lightweight message back to the main server process via Redis
-  await redisPublisher.publish('video_updates', JSON.stringify({
-    status: 'completed',
-    partnerId,
-    foodItemId,
-    message: 'Your reel has been successfully processed!'
-  }));
-
-
-
-}, { connection: queueConnection,
-  concurrency: 2,          // Process up to 2 jobs concurrently
-  lockDuration: 30000,     // Consider the worker "alive" for 30s before checking stalls
-  stalledInterval: 10000,  // Check for crashed ghost workers every 10 seconds
-  maxStalledCount: 2       // Retry a stalled job up to 2 times before sending it to 'failed'
- });
-
+  } catch (uploadError) {
+    console.error(`Upload attempt failed: ${(uploadError as any).message}`);
+    throw uploadError; // Rethrow so BullMQ knows it failed and can evaluate retries
+  }
+}, { 
+  connection: queueConnection,
+  concurrency: 2,          
+  lockDuration: 45000,     // Increased to 45s to prevent accidental stall triggers during large video uploads
+  stalledInterval: 15000,  
+  maxStalledCount: 1       
+});
 
 worker.on('completed', (job) => {
   console.log(`Job ${job.id} completed successfully.`);
 });
 
+// Safe global failed listener
 worker.on('failed', async (job, err) => {
-  console.error(`Job ${job?.id} failed with error: ${err.message}`);
+  console.error(`Job ${job?.id} failed definitively with error: ${err.message}`);
+  
+  if (!job) return;
 
- if (job && job.name === 'uploadJob') {
-    const { foodItemId  , partnerId} = job.data;
+  try {
+    const { foodItemId, partnerId, file } = job.data;
     
-    console.error(`Job ${job.id} completely failed after all retries: ${err.message}`);
+    // 1. Safe File Cleanup
+    if (file?.filePath && fs.existsSync(file.filePath)) {
+      try { fs.unlinkSync(file.filePath); } catch {}
+    }
 
-    // OPTION A: Delete the incomplete/broken record entirely (Rollback)
-    await deleteFoodItem(foodItemId , partnerId);
+    // 2. Safe Database Handling (Wrap in try/catch to prevent process crash)
+    try {
+      await deleteFoodItem(foodItemId, partnerId);
+    } catch (dbErr) {
+      console.error(`Could not delete food item during cleanup: ${(dbErr as Error).message}`);
+    }
     
-    // OPTION B: (Alternative) Keep it but update status so user can hit "Retry"
-    // const deadItem = await foodModel.findByIdAndUpdate(foodItemId, { uploadStatus: 'failed' });
-
-    //  Stream a lightweight message back to the main server process via Redis
+    // 3. Notify Client
     await redisPublisher.publish('video_updates', JSON.stringify({
       status: 'failed',
       partnerId,
@@ -83,8 +117,11 @@ worker.on('failed', async (job, err) => {
       message: 'Video processing failed. Please check your network and try again.'
     }));
 
+  } catch (listenerError) {
+    console.error('Fatal failure inside worker error handler:', (listenerError as Error).message);
   }
-})
+});
+
 
 
 registerWorkerShutdownHandlers({
