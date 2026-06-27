@@ -1,17 +1,22 @@
 import Redis from 'ioredis';
-console.log('Connecting to Redis...');
-console.log('REDIS_URL:', process.env.REDIS_URL );
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379',{
-    maxRetriesPerRequest: 3,
+
+// BullMQ compatible client connection options
+export const redisConfig = {
+  maxRetriesPerRequest: null, // CRITICAL: Must be null for BullMQ ecosystems
+  enableReadyCheck: false
+};
+
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+  ...redisConfig,
+  maxRetriesPerRequest: 3, // Safe for standard key-value side operations only
 });
 
-
 redis.on('connect', () => {
-    console.log('Connected to Redis');
-})
+  console.log('Connected to Redis');
+});
 
 redis.on('error', (err) => {
-    throw new Error(`Redis connection error: ${err.message}`);
-})
+  console.error('Redis error:', err);
+});
 
 export default redis;
