@@ -6,6 +6,9 @@ import storageService from '../service/storage.service';
 import type { File } from '../types';
 import { videoUploadQueue } from '../config/queue.config';
 import { v4 as uuid } from 'uuid';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 interface uploadFood{
     name: string,
@@ -112,18 +115,37 @@ export const enqueueBackgroundUpload = async (data:InitialFoodFields , foodPartn
   };
 
   const pendingItem = await foodRepository.addFoodItem(foodData);
+ console.log('offloading started')
+   const tempDir = os.tmpdir();
+  const tempFileName = `${uuid()}-${file.fileName}`;
+  const tempFilePath = path.join(tempDir, tempFileName);
+  
+  fs.writeFileSync(tempFilePath, file.fileBuffer);
 
-   const job = await videoUploadQueue.add('uploadJob', {
+  // Send the ultra-lightweight file reference path to Redis instead of base64
+  console.log('job queue will happen now')
+  const job = await videoUploadQueue.add('uploadJob', {
     partnerId: foodPartnerId,
     foodItemId: pendingItem._id,
     type: data.type,
     file: {
-      fileBuffer: file.fileBuffer.toString('base64'),
-      fileName: uuid(),
+      filePath: tempFilePath, // Tiny string path reference
+      fileName: file.fileName,
       mimeType: file.mimeType
     }
   });
 
+  // const job = await videoUploadQueue.add('uploadJob', {
+  //   partnerId: foodPartnerId,
+  //   foodItemId: pendingItem._id,
+  //   type: data.type,
+  //   file: {
+  //     fileBuffer: file.fileBuffer.toString('base64'),
+  //     fileName: uuid(),
+  //     mimeType: file.mimeType
+  //   }
+  // });
+  console.log('Job enqueued with ID:', job.id, 'for food item:', pendingItem._id);
   if(!job){
     throw new Error('Failed to enqueue background upload job');
   }
