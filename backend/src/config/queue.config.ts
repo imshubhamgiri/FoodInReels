@@ -32,12 +32,11 @@ async function run() {
     await Promise.all(states.map(state => videoUploadQueue.clean(0, 5000, state)));
     
     console.log('✅ Queue cleared successfully!');
-    process.exit(0);
+  
   } catch (error) {
     console.error('❌ Error clearing queue:', error);
     process.exit(1);
   }
 }
-
 run()
 
