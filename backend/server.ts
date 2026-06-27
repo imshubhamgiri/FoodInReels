@@ -26,6 +26,10 @@ const startServer = (): void => {
     console.log(`[BOOT] pid=${process.pid} runtime=${runtime} env=${process.env.NODE_ENV || 'development'} url=http://${HOST}:${PORT}`);
   });
 
+  jobQueue.resume().then(() => {
+    console.log('▶️ Video upload queue globally unpaused and ready.');
+  });
+
   // async function GracefulShutdown(Term:string){
   //   console.log(`$[SHUTDOWN] Received ${Term}, shutting down gracefully...`);
   //   await mongoose.connection.close()

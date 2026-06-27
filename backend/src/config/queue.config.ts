@@ -21,21 +21,23 @@ export const videoUploadQueue = new Queue('videoUpload', {
 });
 
 
-// async function run() {
-//   console.log('Clearing videoUpload queue...');
-//   try {
-//     await videoUploadQueue.drain();
-    
-//     const states = ['completed', 'failed', 'delayed', 'paused'] as const;
-//     await Promise.all(states.map(state => videoUploadQueue.clean(0, 5000, state)));
-    
-//     console.log('✅ Queue cleared successfully!');
-//     process.exit(0);
-//   } catch (error) {
-//     console.error('❌ Error clearing queue:', error);
-//     process.exit(1);
-//   }
-// }
 
-// run()
+
+async function run() {
+  console.log('Clearing videoUpload queue...');
+  try {
+    await videoUploadQueue.drain();
+    
+    const states = ['completed', 'failed', 'delayed', 'paused'] as const;
+    await Promise.all(states.map(state => videoUploadQueue.clean(0, 5000, state)));
+    
+    console.log('✅ Queue cleared successfully!');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error clearing queue:', error);
+    process.exit(1);
+  }
+}
+
+run()
 
