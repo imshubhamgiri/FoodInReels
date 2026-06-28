@@ -25,6 +25,8 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 
 #### For Food Partners:
 - Upload food videos with descriptions and pricing
+- **Async media processing** - Upload returns immediately while video/image processing runs in the background
+- **Real-time upload notifications** - WebSocket push updates when media processing completes or fails
 - Manage restaurant profile with details and contact info
 - Track video engagement (likes, saves) in real-time
 - Edit or delete food items
@@ -42,12 +44,14 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 - **Token hash storage** - Tokens are hashed in database for enhanced security
 
 ### 📤 Video Management
+- **Event-driven uploads** - API responds with `202 Accepted` while BullMQ workers handle CDN upload asynchronously
 - **Video upload** - Multer with memory storage for optimized performance
 - **CDN integration** - ImageKit for reliable video hosting
 - **Video deletion** - Remove videos with proper cleanup
 - **Video preview** - Real-time preview before upload
 - **Metadata management** - Name, description, price per dish
 - **Public ID tracking** - ImageKit public IDs for reliable deletion
+- **Dual upload modes** - Synchronous (`POST /api/foods/add`) and async background (`POST /api/foods`)
 
 ### 👥 User Profile Management
 - **Profile updates** - User can update name, email, phone, gender
@@ -65,12 +69,16 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 - **Axios** (v1.13) - HTTP client with credentials support
 - **Tailwind CSS** (v4) - Utility-first styling with Vite plugin
 - **React Toastify** (v11) - Toast notifications with React 19 support
+- **Socket.io Client** (v4.8) - Real-time WebSocket connection for upload status events
 - **Lucide React** - Modern icon library
 
 ### Backend
 - **Node.js** + **TypeScript** (v5.9) - Typed runtime environment
 - **Express.js** (v5) - Modern web framework with better error handling
 - **MongoDB** (v9 Mongoose) - NoSQL database with improved types
+- **Redis** (v7 via ioredis) - Distributed rate limiting, BullMQ job queue, and Pub/Sub messaging
+- **BullMQ** (v5) - Redis-backed message broker for background media processing
+- **Socket.io** (v4.8) - WebSocket server for real-time client notifications
 - **JWT** - Token-based authentication with rotation support
 - **Bcrypt** - Password hashing (10 rounds) for security
 - **Multer** (v2) - File upload handling with memory storage
@@ -78,7 +86,8 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 - **Helmet** (v8) - HTTP security headers middleware
 - **Zod** (v4) - Runtime type validation and schema parsing
 - **Cookie-parser** - Secure httpOnly cookie handling
-- **Express Rate Limit** (v8) - Multiple rate limiting strategies
+- **Express Rate Limit** (v8) + **rate-limit-redis** - Redis-backed distributed rate limiting
+- **Concurrently** - Runs HTTP server and background worker as a single process group
 - **Jest** & **Supertest** - Testing framework and HTTP assertions
 
 ### Architecture & Patterns (Backend)
@@ -103,9 +112,18 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
   - Atomic like/save operations with session support
   - Automatic rollback on errors
   - Maintains data consistency across related collections
+
+- **Event-Driven Architecture** - Decoupled async media processing pipeline
+  - API enqueues jobs to BullMQ → worker uploads to ImageKit → Redis Pub/Sub → Socket.io pushes to client
+  - Non-blocking uploads with immediate `202 Accepted` responses
+  - Failed jobs trigger cleanup (temp file removal + pending food item deletion)
+
+- **Dual-Process Runtime** - HTTP server and media worker run together via `concurrently`
+  - `start:server` - Express + Socket.io on shared HTTP server
+  - `start:worker` - BullMQ consumer for background CDN uploads
   
 - **Middleware Pipeline** - Ordered execution of cross-cutting concerns
-  - Helmet → Rate-limiting → Cookie Parser → JSON Parser → CORS → Auth Context → Logger → Routes → Error Handler
+  - Helmet → Redis Rate-limiting → Cookie Parser → JSON Parser → CORS → Auth Context → Logger → Routes → Error Handler
   
 - **Role-Based Access Control (RBAC)** - Granular permission management
   - User vs Partner role differentiation
@@ -116,6 +134,8 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
   - Winston logger integration for production-grade logging
   - Error tracking with stack traces
   - Request timing and method logging
+
+- **Graceful Shutdown** - Ordered teardown of WebSockets, BullMQ queues, HTTP server, MongoDB, and Redis connections
   
 - **RESTful Endpoints** - Plural resource names and standard HTTP methods (GET, POST, PATCH, DELETE)
 
@@ -126,6 +146,12 @@ Zomato-reel/
 ├── frontend/                # React frontend (stable, feature-complete)
 │   ├── src/
 │   │   ├── components/     # Reusable UI components
+│   │   │   └── uploadNotification.jsx  # Upload status popup UI
+│   │   ├── config/         # API URL + Socket.io provider
+│   │   │   ├── api.js
+│   │   │   └── socker.config.jsx       # WebSocket context & event listeners
+│   │   ├── context/        # App & theme context providers
+│   │   ├── hooks/          # Custom React hooks
 │   │   ├── pages/          # Page-level components
 │   │   │   ├── Home.jsx           # Video reel feed
 │   │   │   ├── UserLogin.jsx      # User authentication
@@ -135,59 +161,103 @@ Zomato-reel/
 │   │   │   ├── Addfood.jsx        # Video upload interface
 │   │   │   └── PartnerProfile*.jsx
 │   │   ├── services/       # API client services
-│   │   └── config/         # Configuration
+│   │   └── main.jsx        # App bootstrap with SocketProvider
 │   └── package.json
 │
 ├── backend/                # Express backend (TypeScript, refactored)
+│   ├── server.ts           # HTTP server bootstrap + Socket.io + graceful shutdown
 │   ├── src/
+│   │   ├── config/         # Infrastructure configuration
+│   │   │   ├── queue.config.ts    # BullMQ queue & Redis connection
+│   │   │   └── socket.config.ts   # Socket.io + Redis Pub/Sub subscriber
 │   │   ├── controllers/    # Route handlers
 │   │   │   ├── authController.ts
 │   │   │   ├── food.controller.ts
 │   │   │   ├── actionController.ts
-│   │   │   └── profileController.ts
+│   │   │   ├── profileController.ts
+│   │   │   ├── userProfileController.ts
+│   │   │   └── order.Controller.ts
 │   │   ├── services/       # Business logic layer
-│   │   │   ├── auth.service.ts      # Auth logic with typed errors
-│   │   │   ├── food.service.ts
-│   │   │   └── profile.service.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── food.service.ts    # Sync + async upload orchestration
+│   │   │   ├── profile.service.ts
+│   │   │   ├── userProfile.service.ts
+│   │   │   ├── action.service.ts
+│   │   │   └── order.service.ts
+│   │   ├── service/        # External integrations
+│   │   │   └── storage.service.ts # ImageKit CDN operations
 │   │   ├── repositories/   # Data access layer
-│   │   │   ├── auth.repository.ts
-│   │   │   ├── food.repository.ts
-│   │   │   └── profile.repository.ts
 │   │   ├── middleware/     # Express middleware pipeline
-│   │   │   ├── helmet.ts          # HTTP security headers (CSP, X-Frame-Options, etc.)
-│   │   │   ├── errorHandler.ts    # Centralized error with type discrimination
-│   │   │   ├── auth.ts            # JWT verification & context attachment
-│   │   │   ├── validation.ts      # Zod schema validation
-│   │   │   ├── logging.ts         # Request/response logging
-│   │   │   ├── rateLimiter.ts     # Global API rate limiting
-│   │   │   └── cors.ts            # CORS configuration
+│   │   │   ├── helmet.ts
+│   │   │   ├── errorHandler.ts
+│   │   │   ├── auth.ts
+│   │   │   ├── validation.ts
+│   │   │   ├── logging.ts
+│   │   │   ├── rateLimiter.ts     # Redis-backed rate limiting
+│   │   │   └── cors.ts
 │   │   ├── routes/         # Express route definitions
+│   │   │   ├── auth.routes.ts
+│   │   │   ├── food.routes.ts
+│   │   │   ├── userProfiles.routes.ts
+│   │   │   ├── partnerProfile.routes.ts
+│   │   │   ├── useraction.routes.ts
+│   │   │   └── order.routes.ts
+│   │   ├── workers/        # Background job processors
+│   │   │   └── media.worker.ts    # BullMQ consumer for CDN uploads
 │   │   ├── models/         # Mongoose schemas
 │   │   ├── types/          # TypeScript interfaces & types
 │   │   ├── utils/          # Utility functions
-│   │   │   ├── asyncHandler.ts    # Async error wrapper
-│   │   │   └── error.ts           # Custom error classes
-│   │   ├── db/             # Database configuration
-│   │   ├── app.ts          # Express app setup
-│   │   └── server.ts       # Entry point
+│   │   │   ├── asyncHandler.ts
+│   │   │   ├── error.ts
+│   │   │   ├── gracefulShutdown.ts  # Server teardown orchestration
+│   │   │   └── workershutdown.ts    # Worker teardown orchestration
+│   │   ├── db/             # Database & Redis connections
+│   │   │   ├── db.ts
+│   │   │   └── redis.ts
+│   │   ├── logger/         # Winston logger configs
+│   │   └── app.ts          # Express app setup
 │   ├── tsconfig.json
 │   └── package.json
 │
+├── docker-compose.yml      # Backend, frontend, and Redis services
 └── README.md
 ```
 
 ## 🚀 Installation & Setup
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v18 or higher recommended)
 - MongoDB (local or Atlas)
+- **Redis** (v7+) — required for rate limiting, BullMQ job queue, and Pub/Sub
 - ImageKit account (for video hosting)
-- npm or yarn
+- npm, yarn, or bun
 
 ### Clone Repository
 ```bash
 git clone https://github.com/imshubhamgiri/Zomato-reel.git
 cd Zomato-reel
+```
+
+### Start Redis (Local Development)
+
+**Option A — Docker (recommended):**
+```bash
+docker run -d --name foodinreels-redis -p 6379:6379 redis:7-alpine
+```
+
+**Option B — Native install:**
+```bash
+# macOS
+brew install redis && brew services start redis
+
+# Ubuntu/Debian
+sudo apt install redis-server && sudo systemctl start redis
+```
+
+Verify Redis is running:
+```bash
+redis-cli ping
+# Expected: PONG
 ```
 
 ### Backend Setup
@@ -205,18 +275,29 @@ npm install
 3. Create `.env` file:
 ```env
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
+MONGO_URL=your_mongodb_connection_string
+REDIS_URL=redis://localhost:6379
 JWT_SECRET=your_jwt_secret_key
 IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
 IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
 IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
 ```
 
-4. Start backend server:
+4. Start backend (HTTP server **and** background worker):
 ```bash
 npm start
 ```
-Server runs on `http://localhost:5000`
+This runs both processes via `concurrently`:
+- `start:server` — Express API + Socket.io WebSocket server
+- `start:worker` — BullMQ media upload worker
+
+For development with hot reload (server only):
+```bash
+npm run dev
+```
+> **Note:** When using `npm run dev`, run the worker separately in another terminal: `npm run start:worker`
+
+Server runs on `http://localhost:5000` (or the port set in `.env`)
 
 ### Frontend Setup
 
@@ -246,9 +327,9 @@ Frontend runs on `http://localhost:5173`
 The project includes Docker Compose configuration for complete containerization:
 
 ### Services
-- **Backend Service** - Express server running on port 3000
+- **Backend Service** - Express + Socket.io + BullMQ worker (via `npm start`) on port 5000
 - **Frontend Service** - React/Vite app running on port 8080
-
+- **Redis Service** - Redis 7 Alpine for rate limiting, job queue, and Pub/Sub
 
 ### Running with Docker Compose
 ```bash
@@ -268,13 +349,61 @@ docker-compose down
 ### Docker Files
 - **backend/Dockerfile** - TypeScript compilation and Node.js runtime
 - **frontend/Dockerfile** - Vite build and static server
-- **docker-compose.yml** - Service orchestration with networking
+- **docker-compose.yml** - Service orchestration with Redis networking
 
 
 
 ## 🏗️ Backend Architecture (Production-Grade)
 
 The backend implements enterprise-grade architecture patterns with complete type safety and error handling:
+
+### Event-Driven Media Upload Pipeline
+
+Large video uploads are handled asynchronously so the API never blocks on CDN transfer:
+
+```
+Partner uploads media
+        │
+        ▼
+POST /api/foods  ──►  Create pending Food document in MongoDB
+        │             Write temp file to OS tmpdir
+        │             Enqueue job to BullMQ (videoUpload queue)
+        ▼
+   202 Accepted  ◄──  Immediate response { foodItemId }
+        │
+        ▼ (background)
+media.worker.ts  ──►  Read temp file → Upload to ImageKit
+        │             Update Food document with CDN URL
+        │             Delete temp file
+        ▼
+Redis PUBLISH      ──►  Channel: video_updates
+        │
+        ▼
+socket.config.ts   ──►  Redis SUBSCRIBE → Socket.io emit
+        │
+        ▼
+Frontend           ──►  video_upload_status event → toast notification
+```
+
+**Key design decisions:**
+- Job payload stores a **filesystem path reference**, not the raw buffer — keeps Redis memory usage low
+- BullMQ retry policy: 3 attempts with exponential backoff (5s base delay)
+- Worker concurrency: 2 parallel uploads
+- On definitive failure: temp file cleanup + pending food item deletion + failure notification via Pub/Sub
+
+### Real-Time WebSocket Layer
+
+Socket.io runs on the same HTTP server as Express:
+
+| Event (client → server) | Purpose |
+|---|---|
+| `join_room` | Partner joins a room keyed by their partner ID |
+
+| Event (server → client) | Payload |
+|---|---|
+| `video_upload_status` | `{ status, foodItemId, message }` |
+
+The server bridges Redis Pub/Sub to WebSockets — the BullMQ worker publishes to Redis; the API process subscribes and fans out to the correct partner room. This decouples the worker process from direct Socket.io coupling.
 
 ### Error Handling System
 
@@ -321,7 +450,7 @@ if (error instanceof AppError) {
 
 Requests pass through middleware in this order:
 1. **Helmet** - Security headers
-2. **Rate Limiter** - Global throttling (300 req/15min)
+2. **Rate Limiter** - Redis-backed global throttling (300 req/15min)
 3. **Cookie Parser** - Parse httpOnly cookies
 4. **JSON Parser** - Parse request bodies
 5. **CORS** - Cross-origin validation
@@ -332,16 +461,23 @@ Requests pass through middleware in this order:
 
 ### Rate Limiting Strategy
 
+All limiters use **Redis-backed stores** (`rate-limit-redis`) so limits persist across server restarts and scale across multiple instances:
+
 ```typescript
 // Global limiter: 300 requests per 15 minutes
-globalApiLimiter: { windowMs: 900000, max: 300 }
+globalApiLimiter: { windowMs: 900000, max: 300, store: redisStore('rl:global:') }
 
 // Auth-specific: 20 requests per 15 minutes  
-authLimiter: { windowMs: 900000, max: 20 }
+authLimiter: { windowMs: 900000, max: 20, store: redisStore('rl:auth:') }
+
+// Refresh token: 120 requests per 15 minutes
+refreshLimiter: { windowMs: 900000, max: 120, store: redisStore('rl:refresh:') }
 
 // Action-specific: 60 requests per 5 minutes
-actionLimiter: { windowMs: 300000, max: 60 }
+actionLimiter: { windowMs: 300000, max: 60, store: redisStore('rl:action:') }
 ```
+
+> Rate limiting is automatically skipped in the `test` environment.
 
 ### Winston Logger Implementation
 
@@ -384,13 +520,13 @@ Controller → Service → Repository
 Handler    Business Logic   Database
  (HTTP)     (Validation)    (Queries)
            + Error Throwing
+           + Job Enqueueing (async uploads)
 ```
 
-- **Controllers** -HTTP handlers, validate input format
-- **Services** - Business logic, type-safe error throwing
+- **Controllers** - HTTP handlers, validate input format
+- **Services** - Business logic, type-safe error throwing, queue orchestration
 - **Repositories** - Database operations, session support
-
-### Example: Error Flow in Action
+- **Workers** - Background job execution, Pub/Sub event publishing
 
 ### Example: Error Flow in Action
 
@@ -416,7 +552,7 @@ export const register = asyncHandler(async (req, res) => {
 ### Middleware Pipeline
 All requests pass through the following middleware stack (order matters):
 1. **Helmet** - HTTP security headers (CSP, X-Frame-Options, etc.)
-2. **Rate Limiter** - Global API throttling
+2. **Rate Limiter** - Redis-backed global API throttling
 3. **Cookie Parser** - Parse httpOnly cookies
 4. **JSON Parser** - Parse request bodies
 5. **CORS** - Cross-origin resource sharing
@@ -466,6 +602,7 @@ GET /api/auth/loginCheck
 POST /api/auth/refresh
 # Refresh expired access token
 # Uses refresh token from secure cookie
+# Rate limited: refreshLimiter (120 req/15min)
 ```
 
 ### Food Endpoints (RESTful Plural)
@@ -474,13 +611,23 @@ POST /api/auth/refresh
 ```http
 GET /api/foods
 # Protected: User authentication required
-# Returns: Array of all food items with like/save status
+# Query params: limit, id (cursor), lastCreatedAt
+# Returns: Paginated array of food items with like/save status
 
 POST /api/foods
 # Protected: Partner only
 # Content-Type: multipart/form-data
-# Body: { name, description, price, video (file) }
-# Alternative path: POST /api/foods/add
+# Body: { name, description, price, type ('standard' | 'reel'), media (file) }
+# Async: Returns 202 Accepted immediately; media processed in background
+# Response: { success: true, data: { foodItemId } }
+
+POST /api/foods/background
+# Alias for POST /api/foods (same async behavior)
+
+POST /api/foods/add
+# Protected: Partner only
+# Synchronous upload — blocks until ImageKit upload completes
+# Returns: 201 Created with full food item data
 ```
 
 #### Get Single Food Item
@@ -494,12 +641,26 @@ GET /api/foods/partners/:id
 ```http
 PATCH /api/foods/:foodId
 # Protected: Partner only (owner of food item)
-# Body: { name, description, price }
+# Body: { name, description, price, type }
 # Alternative path: PUT /api/foods/update
 
 DELETE /api/foods/:foodId
 # Protected: Partner only (owner of food item)
 # Alternative path: DELETE /api/foods/delete?foodId=...
+```
+
+### WebSocket Events (Real-Time)
+
+Connect to the backend URL via Socket.io. Partners automatically join their room on login.
+
+```javascript
+// Client → Server
+socket.emit('join_room', partnerId);
+
+// Server → Client (via Redis Pub/Sub bridge)
+socket.on('video_upload_status', (data) => {
+  // data: { status: 'completed' | 'failed', foodItemId, message }
+});
 ```
 
 ### Action Endpoints (Interactions)
@@ -535,6 +696,7 @@ GET /api/v1/orders/my-orders
 
 **Status codes:**
 - 201 - Order created successfully
+- 202 - Food item created, media processing started in background
 - 400 - Validation error (missing/invalid fields)
 - 401 - Unauthorized (not authenticated)
 - 500 - Server error
@@ -579,6 +741,27 @@ GET /api/profiles/user/:id
 ```
 
 ## 🔑 Key Features Implementation
+
+### Async Upload with Real-Time Feedback
+Partners get an immediate API response while media processing happens in the background:
+
+```javascript
+// Frontend — POST returns 202, show processing toast
+foodAPI.addFood(formData).then(() => {
+  toast.loading("Processing your reel in the background...", {
+    toastId: 'video-processing-toast',
+    autoClose: false,
+  });
+});
+
+// Socket.io listener dismisses toast and shows result
+socket.on('video_upload_status', (data) => {
+  toast.dismiss('video-processing-toast');
+  data.status === 'completed'
+    ? toast.success(data.message)
+    : toast.error(data.message);
+});
+```
 
 ### Cookie-Based Authentication
 Unlike many projects that store JWT in localStorage, this app uses **httpOnly cookies** for enhanced security:
@@ -649,14 +832,17 @@ const FoodPartnerAuthMiddleware = async (req, res, next) => {
 - **Transaction boundaries** - Sessions passed through repository methods
 - **Async/await** - Consistent async error handling
 - **Type discrimination** - `instanceof` checks for error handling
+- **Job queue decoupling** - Workers publish events; API process handles WebSocket fan-out
+- **Graceful shutdown** - SIGTERM/SIGINT handlers drain connections before exit
 
 ### Frontend Patterns
 - **React Hooks** - useState, useEffect for state management
-- **Context API** - Theme and authentication context
+- **Context API** - Theme, authentication, and WebSocket context
 - **Composition** - Reusable UI components
-- **Axios interceptors** - Request/response configuration
+- **Axios interceptors** - Request/response configuration with token refresh queue
 - **Optimistic updates** - Instant UI feedback before server confirmation
 - **Error boundaries** - Graceful error handling in components
+- **Socket.io integration** - Real-time upload status via `SocketProvider`
 
 ### Database Patterns
 - **Unique constraints** - Email, phone fields have indexes
@@ -664,6 +850,7 @@ const FoodPartnerAuthMiddleware = async (req, res, next) => {
 - **Timestamps** - Auto-tracking of creation/update times
 - **Lean queries** - Performance optimization for read-only operations
 - **Transactions** - ACID guarantees for critical operations
+- **Compound indexes** - Cursor-based pagination on `{ foodPartner, createdAt }`
 
 ## 🎨 UI/UX Highlights
 
@@ -671,6 +858,7 @@ const FoodPartnerAuthMiddleware = async (req, res, next) => {
 - **Responsive layout** - Works on mobile, tablet, desktop
 - **Skeleton loaders** - Better perceived performance
 - **Toast notifications** - User feedback on actions
+- **Real-time upload toasts** - Processing spinner → success/error notification via WebSocket
 - **Video controls** - Play/pause, mute/unmute
 - **Smooth animations** - Tailwind transitions
 - **Profile avatars** - Initial-based avatars
@@ -689,11 +877,11 @@ const FoodPartnerAuthMiddleware = async (req, res, next) => {
 ✅ **CORS configuration** - Restricted origins, with credentials support  
 ✅ **Protected routes** - Middleware-based role verification on sensitive endpoints  
 ✅ **Input validation** - Zod schema validation before business logic  
-✅ **File type validation** - Video uploads with proper MIME type checking  
+✅ **File type validation** - Video/image uploads with proper MIME type checking  
 ✅ **CSP Policy** - Content Security Policy for media (ImageKit CDN whitelisted)  
 ✅ **Stack trace sanitization** - Never exposed to clients in production  
 ✅ **Error type discrimination** - Programming errors handled separately from operational errors  
-✅ **Rate limiting** - Global API throttling + auth-specific + action-specific limiters  
+✅ **Redis-backed rate limiting** - Distributed throttling across global, auth, refresh, and action endpoints  
 ✅ **Session-based access control** - User context attached to all requests  
 
 ## 💾 Database Transactions
@@ -774,14 +962,17 @@ try {
 {
     _id: ObjectId (unique),
     name: String (required),
-    video: String (CDN URL, required),
-    videoPublicId: String (ImageKit public ID, required),
+    type: String (enum: 'standard' | 'reel', required, indexed),
+    video: String (CDN URL, required for reel type),
+    image: String (CDN URL, required for standard type),
+    videoPublicId: String (ImageKit public ID),
     description: String (required),
     price: Number (required),
     likeCount: Number (default: 0),
     saveCount: Number (default: 0),
     foodPartner: ObjectId (ref: FoodPartner, required),
-    timestamps: true
+    timestamps: true,
+    // Compound indexes: { foodPartner, createdAt }, { createdAt }, { likeCount }
 }
 ```
 
@@ -828,7 +1019,7 @@ try {
 - Payment gateway integration
 - User reviews, ratings, and partner analytics dashboard
 - Advanced search and geolocation-based discovery
-- Push notifications and real-time chat system
+- Real-time chat between users and partners
 - Production MongoDB cluster and CI/CD pipeline
 ## 🏁 Project Status
 
@@ -837,17 +1028,28 @@ try {
 - Enterprise-grade error handling system
 - Complete API with 20+ endpoints
 - MongoDB transactions for data consistency
-- Rate limiting at multiple levels
+- Redis-backed distributed rate limiting
+- Event-driven async media processing (BullMQ + Redis Pub/Sub)
+- Real-time WebSocket notifications (Socket.io)
+- Dual-process runtime (API server + background worker)
+- Graceful shutdown for all connections
 - Comprehensive middleware pipeline
-- Docker containerization
+- Docker containerization with Redis
 
 ### Frontend ✅ Feature-Complete
 - React 19 with modern hooks
 - Vite 7 build optimization
 - Tailwind CSS v4 styling
 - Real-time UI updates with optimistic rendering
+- WebSocket-driven upload status notifications
 - Responsive design for all devices
 - Dark theme support
+
+### Infrastructure ✅ Event-Driven
+- Redis for rate limiting, job queue, and Pub/Sub
+- BullMQ worker with retry policy and failure cleanup
+- Socket.io bridging Redis events to connected clients
+- CI pipeline with MongoDB + Redis service containers
 
 ### Database ✅ Well-Structured
 - Proper relationships with foreign keys
@@ -859,8 +1061,9 @@ try {
 ## 🐛 Known Limitations
 
 - Video autoplay requires user interaction on some browsers
-- Large video uploads (~500MB+) may timeout; recommend compression before upload
-- Real-time features require WebSocket upgrade (planned)
+- Large video uploads (~500MB+) may timeout on slow connections; recommend compression before upload
+- `npm run dev` starts the API server only — the BullMQ worker must be run separately (`npm run start:worker`)
+- Pending food items (async upload in progress) may appear in listings before media URLs are populated
 
 ## 🤝 Contributing
 
@@ -882,15 +1085,16 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Latest Update**: Winston logger implementation (dev/uat/production configs) and initial Order routes (v1) added. Production-grade structured logging with environment-specific configurations. Order management system initiated with create order and fetch user orders endpoints.
+**Latest Update**: Event-driven architecture with Redis (rate limiting, BullMQ job queue, Pub/Sub), Socket.io real-time upload notifications, async background media processing via dedicated worker, and graceful shutdown orchestration. Food uploads now return `202 Accepted` with WebSocket push on completion.
 
 ## 🙏 Acknowledgments
 
 - ImageKit for video CDN services
 - MongoDB for flexible database solution
+- Redis & BullMQ for reliable async job processing
 - React community for excellent documentation
 - TikTok/Instagram for reel UI inspiration
 
 ---
 
-**Note**: This project demonstrates enterprise-level full-stack development practices. The backend implements type-safe error handling, proper separation of concerns (repository/service/controller), and middleware-based request processing. Production deployment-ready with structured logging and error tracking hooks prepared for external services.
+**Note**: This project demonstrates enterprise-level full-stack development practices. The backend implements type-safe error handling, event-driven async processing, proper separation of concerns (repository/service/controller/worker), and middleware-based request processing. Production deployment-ready with structured logging, distributed rate limiting, and real-time WebSocket notifications.
