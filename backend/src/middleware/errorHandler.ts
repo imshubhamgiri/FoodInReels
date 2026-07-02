@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { AppError } from '../utils/error';
+import multer from 'multer';
 
 interface ClientErrorResponse {
   success: false;
@@ -52,6 +53,14 @@ export const errorHandler = (
 
     res.status(maybeParseError.statusCode || maybeParseError.status || 400).json(response);
     return;
+  }
+
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+       res.status(400).json({
+        error: 'File is too large. Maximum allowed size is 5MB.',
+      });
+    }
   }
 
   if (err instanceof AppError) {
