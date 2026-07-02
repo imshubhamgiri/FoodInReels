@@ -51,14 +51,14 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 - **Video preview** - Real-time preview before upload
 - **Metadata management** - Name, description, price per dish
 - **Public ID tracking** - ImageKit public IDs for reliable deletion
-- **Dual upload modes** - Synchronous (`POST /api/foods/add`) and async background (`POST /api/foods`)
+- **Versioned async upload** - `POST /api/v3/foods` returns `202 Accepted` with a 5MB file size limit
 
 ### 👥 User Profile Management
 - **Profile updates** - User can update name, email, phone, gender
 - **Multiple addresses** - Add multiple delivery addresses with labels (Home, Work, Other)
 - **Address defaults** - Mark preferred delivery address
 - **Complete address info** - Street, city, state, postal code, country, landmark
-- **Profile endpoints** - `/api/users/me` for GET and PATCH operations
+- **Profile endpoints** - `/api/v3/users/me` with dedicated address sub-routes
 
 ## 🛠️ Tech Stack
 
@@ -92,9 +92,10 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 
 ### Architecture & Patterns (Backend)
 - **TypeScript** - Full type safety across codebase with strict mode
-- **Custom Error Classes** - Type-safe error hierarchy (`AppError`, `AuthError`, `ConflictError`, `NotFoundError`, `ValidationError`, `ForbiddenError`)
+- **Custom Error Classes** - Type-safe error hierarchy (`AppError`, `AuthError`, `ConflictError`, `NotFoundError`, `ValidationError`, `ForbiddenError`, `InternalError`)
   - Type-safe error throwing with automatic status code mapping
   - `isOperational` flag to distinguish expected errors from programming bugs
+  - Structured JSON error responses with `success`, `message`, `name`, and `timestamp` fields
   
 - **Async Error Handler Utility** - Eliminates repetitive try-catch blocks
   - Centralized error catching: `asyncHandler(async (req, res) => { ... })`
@@ -136,6 +137,11 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
   - Request timing and method logging
 
 - **Graceful Shutdown** - Ordered teardown of WebSockets, BullMQ queues, HTTP server, MongoDB, and Redis connections
+
+- **Versioned API Routing** - All endpoints mount under `/api/v1`, `/api/v2`, or `/api/v3`
+  - **v3** is the current recommended version
+  - **v1** and **v2** are deprecated with IETF `Deprecation`, `Sunset`, and `Link` headers pointing to `/api/v3`
+  - Modular route trees: `routes/v1Routes/`, `routes/v2Routes/`, `routes/v3Routes/` composed via `routes/index.ts`
   
 - **RESTful Endpoints** - Plural resource names and standard HTTP methods (GET, POST, PATCH, DELETE)
 
@@ -189,19 +195,18 @@ Zomato-reel/
 │   │   ├── repositories/   # Data access layer
 │   │   ├── middleware/     # Express middleware pipeline
 │   │   │   ├── helmet.ts
-│   │   │   ├── errorHandler.ts
+│   │   │   ├── errorHandler.ts    # Centralized + Multer + JSON parse errors
+│   │   │   ├── deprecation.ts     # IETF Deprecation/Sunset/Link headers
 │   │   │   ├── auth.ts
 │   │   │   ├── validation.ts
 │   │   │   ├── logging.ts
 │   │   │   ├── rateLimiter.ts     # Redis-backed rate limiting
 │   │   │   └── cors.ts
-│   │   ├── routes/         # Express route definitions
-│   │   │   ├── auth.routes.ts
-│   │   │   ├── food.routes.ts
-│   │   │   ├── userProfiles.routes.ts
-│   │   │   ├── partnerProfile.routes.ts
-│   │   │   ├── useraction.routes.ts
-│   │   │   └── order.routes.ts
+│   │   ├── routes/         # Versioned API route trees
+│   │   │   ├── index.ts           # Root router: /api/v1, /api/v2, /api/v3
+│   │   │   ├── v1Routes/          # Deprecated (sunset 2026-10-01)
+│   │   │   ├── v2Routes/          # Deprecated (sunset 2027-01-01)
+│   │   │   └── v3Routes/          # Current API version
 │   │   ├── workers/        # Background job processors
 │   │   │   └── media.worker.ts    # BullMQ consumer for CDN uploads
 │   │   ├── models/         # Mongoose schemas
@@ -365,7 +370,7 @@ Large video uploads are handled asynchronously so the API never blocks on CDN tr
 Partner uploads media
         │
         ▼
-POST /api/foods  ──►  Create pending Food document in MongoDB
+POST /api/v3/foods  ──►  Create pending Food document in MongoDB
         │             Write temp file to OS tmpdir
         │             Enqueue job to BullMQ (videoUpload queue)
         ▼
@@ -410,18 +415,19 @@ The server bridges Redis Pub/Sub to WebSockets — the BullMQ worker publishes t
 #### Custom Error Classes Hierarchy
 ```typescript
 AppError (abstract base)
-├── AuthError (401 Unauthorized)
-├── ConflictError (409 Conflict)
-├── NotFoundError (404 Not Found)
 ├── ValidationError (400 Bad Request)
-└── ForbiddenError (403 Forbidden)
+├── AuthError (401 Unauthorized)
+├── ForbiddenError (403 Forbidden)
+├── NotFoundError (404 Not Found)
+├── ConflictError (409 Conflict)
+└── InternalError (500 Internal Server Error — non-operational)
 ```
 
 Each error includes:
 - Automatic status code assignment per error type
-- `isOperational` flag for error classification
+- `isOperational` flag for error classification (`InternalError` is always non-operational)
 - Message context and optional details
-- Stack trace sanitization in production
+- Stack trace exposed only in `development` for non-operational errors
 
 #### Async Error Handler Utility
 Eliminates repetitive try-catch blocks:
@@ -434,15 +440,31 @@ export const register = asyncHandler(async (req, res) => {
 ```
 
 #### Centralized Error Middleware
+All errors return a consistent JSON shape:
 ```typescript
-// Analyzes error type
-if (error instanceof AppError) {
-  // Operational error - safe to expose
-  res.status(error.statusCode).json({ success: false, message: error.message });
-} else {
-  // Programming error - log and return generic message
-  logger.error('Unexpected error:', error);
-  res.status(500).json({ success: false, message: 'Internal server error' });
+interface ClientErrorResponse {
+  success: false;
+  message: string;
+  name?: string;       // AppError class name (e.g. ValidationError)
+  error?: string;      // Stack trace — development only
+  timestamp: string;   // ISO 8601
+}
+```
+
+The error handler covers:
+- **AppError subclasses** — returns the error's `statusCode` and message
+- **Invalid JSON payloads** — `400` with a clear parse error message
+- **Multer file size errors** — `400` when upload exceeds the 5MB limit (v3 foods)
+- **Unhandled errors** — `500 Internal server error` (stack trace in development only)
+
+#### 404 Not Found Handler
+Unknown routes return:
+```json
+{
+  "success": false,
+  "message": "Route not found",
+  "error": "GET /api/v3/unknown",
+  "timestamp": "2026-06-28T12:00:00.000Z"
 }
 ```
 
@@ -549,6 +571,55 @@ export const register = asyncHandler(async (req, res) => {
 
 ## 📡 API Documentation
 
+All API endpoints are **versioned** under `/api/v{n}/`. Use **`/api/v3`** for all new integrations.
+
+### API Versioning
+
+| Version | Status | Sunset Date | Successor |
+|---------|--------|-------------|-----------|
+| **v3** | **Current** | — | — |
+| v2 | Deprecated | 2027-01-01 | `/api/v3` |
+| v1 | Deprecated | 2026-10-01 | `/api/v3` |
+
+Deprecated versions (`v1`, `v2`) automatically attach IETF-standard response headers on every request:
+
+```http
+Deprecation: true
+Sunset: Wed, 01 Oct 2026 00:00:00 GMT
+Link: </api/v3>; rel="successor-version"
+```
+
+Route composition is handled in `routes/index.ts`:
+```typescript
+rootRouter.use('/v1', deprecateRoute('2026-10-01', '/api/v3'), v1Routes);
+rootRouter.use('/v2', deprecateRoute('2027-01-01', '/api/v3'), v2Routes);
+rootRouter.use('/v3', v3Routes);
+```
+
+### Standard Error Response
+
+All error responses follow this shape:
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "name": "ValidationError",
+  "timestamp": "2026-06-28T12:00:00.000Z"
+}
+```
+
+**Common status codes:**
+| Code | Meaning |
+|------|---------|
+| 201 | Resource created |
+| 202 | Accepted — async processing started (v3 food upload) |
+| 400 | Validation error, invalid JSON, or file too large |
+| 401 | Not authenticated |
+| 403 | Insufficient permissions |
+| 404 | Resource or route not found |
+| 409 | Conflict (e.g. duplicate email) |
+| 500 | Internal server error |
+
 ### Middleware Pipeline
 All requests pass through the following middleware stack (order matters):
 1. **Helmet** - HTTP security headers (CSP, X-Frame-Options, etc.)
@@ -556,102 +627,127 @@ All requests pass through the following middleware stack (order matters):
 3. **Cookie Parser** - Parse httpOnly cookies
 4. **JSON Parser** - Parse request bodies
 5. **CORS** - Cross-origin resource sharing
-6. **Auth Context** - Attach user/partner context if authenticated
+6. **Auth Context** - Attach user/partner context if authenticated (non-blocking)
 7. **Logger** - Request/response logging
-8. **Route Handlers**
-9. **Error Handler** - Centralized error response formatting
+8. **Version Router** - Route to `/api/v1`, `/api/v2`, or `/api/v3` handler tree
+9. **Deprecation Headers** - Applied on v1/v2 routes
+10. **Route Handlers**
+11. **404 Not Found Handler** - Unknown routes
+12. **Error Handler** - Centralized error response formatting
 
-### Authentication Endpoints
+---
 
-#### User Routes (Plural)
+### v3 API Reference (Current)
+
+Base path: **`/api/v3`**
+
+#### Authentication — `/api/v3/auth`
+
 ```http
-POST /api/auth/users/register
+POST /api/v3/auth/users/register
 # Body: { name, email, password }
-# Response: { user: {...}, token: "..." }
+# Rate limited: authLimiter (20 req/15min)
 
-POST /api/auth/users/login
+POST /api/v3/auth/users/login
 # Body: { email, password }
-# Response: { user: {...}, token: "..." }
 
-POST /api/auth/users/logout
-GET  /api/auth/users/logout
-# Clears authentication cookie
-```
+POST /api/v3/auth/users/logout
+# Protected: Requires valid JWT cookie
+# Method: POST only
 
-#### Partner Routes (Plural)
-```http
-POST /api/auth/partners/register
+POST /api/v3/auth/partners/register
 # Body: { name, restaurantName, email, phone, address, password }
-# Response: { partner: {...}, token: "..." }
 
-POST /api/auth/partners/login
+POST /api/v3/auth/partners/login
 # Body: { email, password }
-# Response: { partner: {...}, token: "..." }
 
-POST /api/auth/partners/logout
-GET  /api/auth/partners/logout
-# Clears authentication cookie
-```
+POST /api/v3/auth/partners/logout
+# Protected: Requires valid JWT cookie
+# Method: POST only
 
-#### Auth Check
-```http
-GET /api/auth/loginCheck
-# Returns user type (user/partner) and profile data
-# Protected: Requires valid JWT in cookie
-
-POST /api/auth/refresh
-# Refresh expired access token
-# Uses refresh token from secure cookie
+POST /api/v3/auth/refresh
+# Refresh expired access token using refresh token cookie
 # Rate limited: refreshLimiter (120 req/15min)
+
+GET /api/v3/auth/me
+# Returns authenticated user/partner profile
+# Protected: Requires valid JWT cookie
 ```
 
-### Food Endpoints (RESTful Plural)
+#### Foods — `/api/v3/foods`
 
-#### List & Create
 ```http
-GET /api/foods
-# Protected: User authentication required
-# Query params: limit, id (cursor), lastCreatedAt
-# Returns: Paginated array of food items with like/save status
-
-POST /api/foods
+POST /api/v3/foods
 # Protected: Partner only
 # Content-Type: multipart/form-data
 # Body: { name, description, price, type ('standard' | 'reel'), media (file) }
-# Async: Returns 202 Accepted immediately; media processed in background
+# Max file size: 5MB
+# Async: Returns 202 Accepted immediately; media processed in background via BullMQ
 # Response: { success: true, data: { foodItemId } }
-
-POST /api/foods/background
-# Alias for POST /api/foods (same async behavior)
-
-POST /api/foods/add
-# Protected: Partner only
-# Synchronous upload — blocks until ImageKit upload completes
-# Returns: 201 Created with full food item data
 ```
 
-#### Get Single Food Item
+> Food listing, update, and delete endpoints are available on **v2** (`/api/v2/foods`) until the v3 food module is expanded. v2 is deprecated — migrate to v3 when those routes ship.
+
+#### Actions — `/api/v3/actions`
+
 ```http
-GET /api/foods/partners/:id
-# Get all food items by a specific partner
-# Alternative path: GET /api/foods/getfood/:id
+POST /api/v3/actions/like
+# Protected: User authentication required
+# Body: { foodId }
+# Rate limited: actionLimiter (60 req/5min)
+# Toggles like — Response: { isLiked, likeCount }
+
+POST /api/v3/actions/save
+# Protected: User authentication required
+# Body: { foodId }
+# Toggles save — Response: { isSaved, saveCount }
 ```
 
-#### Update & Delete
+#### Orders — `/api/v3/orders`
+
 ```http
-PATCH /api/foods/:foodId
-# Protected: Partner only (owner of food item)
-# Body: { name, description, price, type }
-# Alternative path: PUT /api/foods/update
+POST /api/v3/orders
+# Protected: User authentication required
+# Body: { foodId, quantity, deliveryAddress, ... }
+# Response: { _id, userId, foods[], status, totalAmount, createdAt }
 
-DELETE /api/foods/:foodId
-# Protected: Partner only (owner of food item)
-# Alternative path: DELETE /api/foods/delete?foodId=...
+GET /api/v3/orders/my-orders
+# Protected: User authentication required
+# Returns all orders for the authenticated user
 ```
+
+#### Users — `/api/v3/users`
+
+```http
+GET    /api/v3/users/me
+PATCH  /api/v3/users/me
+# Body: { name?, email?, phone?, gender? }
+
+GET    /api/v3/users/me/saved-foods
+GET    /api/v3/users/me/addresses
+POST   /api/v3/users/me/addresses
+PATCH  /api/v3/users/me/addresses/:addressId
+PATCH  /api/v3/users/me/addresses/:addressId/default
+DELETE /api/v3/users/me/addresses/:addressId
+```
+
+Address fields: `label` (Home/Work/Other), `fullName`, `phone`, `line1`, `city`, `state`, `postalCode`, `country`, `landmark`, `isDefault`
+
+#### Partners — `/api/v3/partners`
+
+```http
+GET /api/v3/partners/foodPartners
+# Protected: Partner only — returns own profile
+
+GET /api/v3/partners/foodPartners/:id
+# Public — returns partner profile and their dishes
+```
+
+---
 
 ### WebSocket Events (Real-Time)
 
-Connect to the backend URL via Socket.io. Partners automatically join their room on login.
+WebSockets are **not versioned** — connect directly to the backend URL via Socket.io. Partners automatically join their room on login.
 
 ```javascript
 // Client → Server
@@ -663,82 +759,19 @@ socket.on('video_upload_status', (data) => {
 });
 ```
 
-### Action Endpoints (Interactions)
+---
 
-```http
-POST /api/actions/like
-# Protected: User authentication required
-# Body: { foodId }
-# Toggles like on food item
-# Response: { isLiked: boolean, likeCount: number }
+### Deprecated Versions (Do Not Use for New Integrations)
 
-POST /api/actions/save
-# Protected: User authentication required
-# Body: { foodId }
-# Toggles save on food item
-# Response: { isSaved: boolean, saveCount: number }
-```
+**v2** (`/api/v2`) — Sunset **2027-01-01**
+- Includes interim food CRUD: `GET /`, `GET /partners/:id`, `PATCH /:foodId`, `DELETE /:foodId`, `POST /`
+- Same auth, orders, users, partners, and actions surface as v3
 
-### Order Endpoints (v1 - Initial Version)
+**v1** (`/api/v1`) — Sunset **2026-10-01**
+- Legacy non-RESTful path aliases only (e.g. `/foods/add`, `/foods/listfood`) — do not adopt
 
-```http
-POST /api/v1/orders
-# Protected: User authentication required
-# Body: { foodId, quantity, deliveryAddress, ... }
-# Creates a new order
-# Response: { _id, userId, foods[], status, totalAmount, createdAt }
+Both deprecated versions return `Deprecation`, `Sunset`, and `Link` headers on every response pointing clients to `/api/v3`.
 
-GET /api/v1/orders/my-orders
-# Protected: User authentication required
-# Returns: Array of all orders belonging to authenticated user
-# Response: [{ _id, status, totalAmount, createdAt, foods[] }, ...]
-```
-
-**Status codes:**
-- 201 - Order created successfully
-- 202 - Food item created, media processing started in background
-- 400 - Validation error (missing/invalid fields)
-- 401 - Unauthorized (not authenticated)
-- 500 - Server error
-
-**Note:** Order route is versioned as v1 to support future API versions (v2, v3, etc.)
-
-### Profile Endpoints (Plural) 
-
-#### Get & Update User Profile
-```http
-GET /api/users/me
-# Protected: User authentication required
-# Returns: { _id, name, email, phone, gender, address[] }
-
-PATCH /api/users/me
-# Protected: User authentication required
-# Body: { name?, email?, phone?, gender? }
-# Returns: Updated user profile
-```
-
-#### Manage User Addresses
-```http
-# Addresses are stored in the user's address array
-# Each address can have labels: 'Home', 'Work', 'Other'
-# Addressfields: label, fullName, phone, line1, city, state, postalCode, country, landmark, isDefault
-```
-
-#### Get Food Partner Profile
-```http
-GET /api/partners/:id
-# Get food partner profile and all their dishes
-# Returns: { partner: {...}, foods: [...], totalLikes: number }
-
-GET /api/profiles/foodpartner/:id
-# Alternative endpoint for partner profile
-```
-
-#### Get User Profile from Partner View
-```http
-GET /api/profiles/user/:id
-# Get user profile information
-```
 
 ## 🔑 Key Features Implementation
 
@@ -746,12 +779,13 @@ GET /api/profiles/user/:id
 Partners get an immediate API response while media processing happens in the background:
 
 ```javascript
-// Frontend — POST returns 202, show processing toast
-foodAPI.addFood(formData).then(() => {
-  toast.loading("Processing your reel in the background...", {
-    toastId: 'video-processing-toast',
-    autoClose: false,
-  });
+// Frontend — POST /api/v3/foods returns 202, show processing toast
+const response = await apiClient.post('/api/v3/foods', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+});
+toast.loading("Processing your reel in the background...", {
+  toastId: 'video-processing-toast',
+  autoClose: false,
 });
 
 // Socket.io listener dismisses toast and shows result
@@ -802,7 +836,7 @@ setVideos(prev => prev.map(v =>
         ? { ...v, isLiked: !v.isLiked, likeCount: v.likeCount + 1 }
         : v
 ));
-await axios.post('/api/actions/like', { foodId });
+await axios.post('/api/v3/actions/like', { foodId });
 ```
 
 ### Role-Based Middleware
@@ -834,6 +868,7 @@ const FoodPartnerAuthMiddleware = async (req, res, next) => {
 - **Type discrimination** - `instanceof` checks for error handling
 - **Job queue decoupling** - Workers publish events; API process handles WebSocket fan-out
 - **Graceful shutdown** - SIGTERM/SIGINT handlers drain connections before exit
+- **API versioning** - Modular v1/v2/v3 route trees with IETF deprecation headers on legacy versions
 
 ### Frontend Patterns
 - **React Hooks** - useState, useEffect for state management
@@ -1025,8 +1060,9 @@ try {
 
 ### Backend ✅ Production-Ready
 - Full TypeScript with strict type checking
-- Enterprise-grade error handling system
-- Complete API with 20+ endpoints
+- Enterprise-grade error handling with structured JSON responses
+- Versioned API (`/api/v3` current) with IETF deprecation on v1/v2
+- Complete API with 20+ endpoints across auth, foods, actions, orders, users, partners
 - MongoDB transactions for data consistency
 - Redis-backed distributed rate limiting
 - Event-driven async media processing (BullMQ + Redis Pub/Sub)
@@ -1061,7 +1097,8 @@ try {
 ## 🐛 Known Limitations
 
 - Video autoplay requires user interaction on some browsers
-- Large video uploads (~500MB+) may timeout on slow connections; recommend compression before upload
+- v3 food uploads are capped at **5MB** per file (enforced by Multer in `v3Routes/food.routes.ts`)
+- Food list/update/delete endpoints are on deprecated v2 until v3 food CRUD is fully migrated
 - `npm run dev` starts the API server only — the BullMQ worker must be run separately (`npm run start:worker`)
 - Pending food items (async upload in progress) may appear in listings before media URLs are populated
 
@@ -1085,7 +1122,7 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Latest Update**: Event-driven architecture with Redis (rate limiting, BullMQ job queue, Pub/Sub), Socket.io real-time upload notifications, async background media processing via dedicated worker, and graceful shutdown orchestration. Food uploads now return `202 Accepted` with WebSocket push on completion.
+**Latest Update**: Versioned API routing (`/api/v3` current, v1/v2 deprecated with IETF Sunset headers), structured error responses with timestamps, v3 async food upload with 5MB limit, and modular route trees under `routes/v1Routes`, `routes/v2Routes`, `routes/v3Routes`.
 
 ## 🙏 Acknowledgments
 
@@ -1097,4 +1134,4 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Note**: This project demonstrates enterprise-level full-stack development practices. The backend implements type-safe error handling, event-driven async processing, proper separation of concerns (repository/service/controller/worker), and middleware-based request processing. Production deployment-ready with structured logging, distributed rate limiting, and real-time WebSocket notifications.
+**Note**: This project demonstrates enterprise-level full-stack development practices. The backend implements type-safe error handling, versioned API routing with deprecation policy, event-driven async processing, proper separation of concerns (repository/service/controller/worker), and middleware-based request processing. Production deployment-ready with structured logging, distributed rate limiting, and real-time WebSocket notifications.
