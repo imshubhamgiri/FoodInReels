@@ -14,6 +14,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { helmetMiddleware } from './middleware/helmet';
 import userprofileRoutes from './routes/userProfiles.routes';
 import { getDbHealth } from './db/db';
+import rootRouter from './routes';
 
 const app = express();
 const testMode = process.env.NODE_ENV === 'test';
@@ -40,6 +41,8 @@ app.use(corsMiddleware);
 app.use(attachAuthContext);
 !testMode && app.use(logger);
 
+
+app.use('/api', rootRouter)
 app.use('/api/auth', authRoutes);
 
 app.use('/api/foods', foodRoutes);
