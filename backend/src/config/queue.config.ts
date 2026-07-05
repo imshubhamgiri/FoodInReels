@@ -23,7 +23,7 @@ export const videoUploadQueue = new Queue('videoUpload', {
 
 
 
-async function run() {
+export async function run() {
   console.log('Clearing videoUpload queue...');
   try {
     await videoUploadQueue.drain();
@@ -38,5 +38,5 @@ async function run() {
     process.exit(1);
   }
 }
-run()
+// run()
 
