@@ -1169,3 +1169,26 @@ describe('DATA CONSISTENCY - Database State Tests', () => {
 
 //   });
 // });
+
+
+describe('API Versioning and Deprecation Tests', () => {
+  
+  it('should return 404 and deprecation headers for v1 endpoints', async () => {
+    const result = await request(app).get('/api/v1/partners/foodpartners/69330c06f599751b95e52da3');
+    
+    expect(result.status).toBe(404);
+    expect(result.headers['deprecation']).toBe('true');
+    expect(result.headers['link']).toContain('/api/v3');
+  });
+
+  it('should return successful response from the updated v3 endpoint', async () => {
+    const response = await request(app)
+      .get('/api/v3/partners/foodPartners/69330c06f599751b95e52da3')
+
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty('success', false);
+    // Ensure v3 doesn't accidentally send deprecation headers
+    expect(response.headers['deprecation']).toBeUndefined();
+  });
+
+});
