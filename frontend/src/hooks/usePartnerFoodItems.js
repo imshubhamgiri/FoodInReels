@@ -45,7 +45,7 @@ export default function usePartnerFoodItems(partnerId, autoFetchFood = true) {
     if (!partnerId) return;
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/api/foods`, {
+      const response = await axios.get(`${API_URL}foods`, {
         withCredentials: true
       });
       setFoodItems(response.data.data || response.data.foodItems || []);
@@ -66,7 +66,7 @@ export default function usePartnerFoodItems(partnerId, autoFetchFood = true) {
 
   const deleteFoodItem = async (foodId) => {
     try {
-      await axios.delete(`${API_URL}/api/foods/delete`, {
+      await axios.delete(`${API_URL}foods/delete`, {
         data: { foodId },
         withCredentials: true
       });
@@ -81,7 +81,7 @@ export default function usePartnerFoodItems(partnerId, autoFetchFood = true) {
   const updateFoodItem = async (formData) => {
     setEditLoading(true);
     try {
-      const response = await axios.put(`${API_URL}/api/foods/update`, formData, {
+      const response = await axios.put(`${API_URL}foods/update`, formData, {
         withCredentials: true
       });
       
