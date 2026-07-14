@@ -51,7 +51,7 @@ const Addfood = () => {
     if (formData.media) {
       submitData.append('media', formData.media)
     }
-      console.log('Submitting form with data:', submitData.get('name'), submitData.get('description'), submitData.get('price'), submitData.get('type'), submitData.get('media'))
+      // console.log('Submitting form with data:', submitData.get('name'), submitData.get('description'), submitData.get('price'), submitData.get('type'), submitData.get('media'))
     foodAPI.addFood(submitData)
       .then((res) => {  
         setFormData({
@@ -71,7 +71,12 @@ const Addfood = () => {
       })
       .catch(error => {
         console.error('Error submitting form:', error)
-        toast.error('Failed to add dish. Please try again.');
+        if(error.data.name === 'MulterError' && error.data.message.includes('File is too large')) {
+          toast.error('File is too large. Maximum allowed size is 5MB.');
+        } else {
+          toast.error('Failed to add dish. Please try again.');
+          console.log('Error details:', error.response || error.message || error)
+        }
       }).finally(() => {
         setloading(false)
       })
