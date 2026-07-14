@@ -55,7 +55,7 @@ apiClient.interceptors.response.use(
 
       try {
         // Attempt to refresh the token
-        await axios.post(`${API_URL}/api/auth/refresh`, {}, {
+        await axios.post(`${API_URL}auth/refresh`, {}, {
           withCredentials: true,
           headers: {
             'Content-Type': 'application/json',
@@ -97,22 +97,22 @@ apiClient.interceptors.response.use(
 // User Authentication APIs
 export const userAPI = {
   register: async (userData) => {
-    const response = await apiClient.post('/api/auth/users/register', userData);
+    const response = await apiClient.post('auth/users/register', userData);
     return response.data;
   },
 
   login: async (userData) => {
-    const response = await apiClient.post('/api/auth/users/login', userData);
+    const response = await apiClient.post('auth/users/login', userData);
     return response.data;
   },
 
   logout: async () => {
-    const response = await apiClient.post('/api/auth/users/logout');
+    const response = await apiClient.post('auth/users/logout');
     return response.data;
   },
 
   getProfile: async () => {
-    const response = await apiClient.get('/api/auth/users/profile');
+    const response = await apiClient.get('auth/users/profile');
     return response.data;
   },
 };
@@ -120,22 +120,22 @@ export const userAPI = {
 // Partner Authentication APIs
 export const partnerAPI = {
   register: async (partnerData) => {
-    const response = await apiClient.post('/api/auth/partners/register', partnerData);
+    const response = await apiClient.post('auth/partners/register', partnerData);
     return response.data;
   },
 
   login: async (partnerData) => {
-    const response = await apiClient.post('/api/auth/partners/login', partnerData);
+    const response = await apiClient.post('auth/partners/login', partnerData);
     return response.data;
   },
 
   logout: async () => {
-    const response = await apiClient.post('/api/auth/partners/logout');
+    const response = await apiClient.post('auth/partners/logout');
     return response.data;
   },
 
   getProfile: async (id) => {
-    const path = id ? `/api/partners/foodPartners/${id}` : '/api/partners/foodPartners';
+    const path = id ? `partners/foodPartners/${id}` : 'partners/foodPartners';
     const response = await apiClient.get(path);
     return response.data;
   },
@@ -144,14 +144,14 @@ export const partnerAPI = {
 // Auth check API
 export const authAPI = {
   checkAuth: async () => {
-    const response = await apiClient.get('/api/auth/me');
+    const response = await apiClient.get('auth/me');
     return response.data;
   },
 };
 
 export const foodAPI = {
   getAllFoods:async(param)=>{
-    const response = await apiClient.get('/api/foods?'+param.toString());
+    const response = await apiClient.get('foods?'+param.toString());
     return response.data;
   },
 
@@ -159,7 +159,7 @@ export const foodAPI = {
     // We MUST use apiClient so that our 401 token refresh interceptor fires!
     // In Axios 1.x, manually setting 'multipart/form-data' correctly overrides 
     // the global JSON header and natively appends the random boundary string itself.
-    const response = await apiClient.post('/api/foods', payload, {
+    const response = await apiClient.post('/foods', payload, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -170,64 +170,64 @@ export const foodAPI = {
 
 export const profileAPI = {
   getMe: async () => {
-    const response = await apiClient.get('/api/users/me');
+    const response = await apiClient.get('users/me');
     return response.data;
   },
 
   updateMe: async (payload) => {
-    const response = await apiClient.patch('/api/users/me', payload);
+    const response = await apiClient.patch('users/me', payload);
     return response.data;
   },
 
   getAddress: async ()=>{
-    const response = await apiClient.get('/api/users/me/addresses');
+    const response = await apiClient.get('users/me/addresses');
     return response.data;
   },
 
   addAddress: async(payload) =>{
-    const response = await apiClient.post('/api/users/me/addresses',payload);
+    const response = await apiClient.post('users/me/addresses',payload);
     return response.data;
   },
 
   updateAddress: async(addressId, payload) =>{
-    const response = await apiClient.patch(`/api/users/me/addresses/${addressId}`, payload);
+    const response = await apiClient.patch(`users/me/addresses/${addressId}`, payload);
     return response.data;
   },
 
   setDefaultAddress: async(addressId) =>{
-    const response = await apiClient.patch(`/api/users/me/addresses/${addressId}/default`);
+    const response = await apiClient.patch(`users/me/addresses/${addressId}/default`);
     return response.data;
   }
   ,
   getSavedFoods: async () => {
-    const response = await apiClient.get('/api/users/me/saved-foods');
+    const response = await apiClient.get('users/me/saved-foods');
     return response.data;
   },
   deleteAddress: async(addressId) =>{
-    const response = await apiClient.delete(`/api/users/me/addresses/${addressId}`);
+    const response = await apiClient.delete(`users/me/addresses/${addressId}`);
     return response.data;
   }
 };
 
 export const orderAPI = {
   placeOrder: async (payload) => {
-    const response = await apiClient.post('/api/orders/', payload);
+    const response = await apiClient.post('orders/', payload);
     return response.data;
   },
   getMyOrders: async () => {
-    const response = await apiClient.get('/api/V1/orders/my-orders');
+    const response = await apiClient.get('orders/my-orders');
     return response.data;
   },
 };
 
 export const useractions = {
   likeFood: async (foodId) => {
-    const response = await apiClient.post(`/api/actions/like`, { foodId });
+    const response = await apiClient.post(`actions/like`, { foodId });
     return response.data;
   },
 
   saveFood: async (foodId) => {
-    const response = await apiClient.post(`/api/actions/save`, { foodId });
+    const response = await apiClient.post(`actions/save`, { foodId });
     return response.data;
   }
 };
