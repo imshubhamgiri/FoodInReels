@@ -2,14 +2,15 @@ import React, { createContext, useContext, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { toast } from 'react-toastify';
 import { useAppContext } from '../context/AppContext';
-import API_URL from '../config/api'
+import SOCKET_URL from '../config/socketApi'
 
-const BACKEND_URL = API_URL; // Replace with your backend domain
+const BACKEND_URL = SOCKET_URL || 'http://localhost:3000'; // Replace with your backend domain
 const SocketContext = createContext(undefined);
 
 export const SocketProvider = ({ children }) => {
  
   const { user} = useAppContext();
+  console.log('SocketProvider user:', user);
   useEffect(() => {
     if (!user?.id) return;
     // 1. Grab your logged-in Partner ID from localStorage or Auth cookies
