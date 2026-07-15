@@ -230,6 +230,11 @@ Zomato-reel/
 
 ## 🚀 Installation & Setup
 
+### Interactive API Docs
+The backend now serves Swagger UI at `http://localhost:3000/api-docs` and the raw OpenAPI document at `http://localhost:3000/api-docs.json`.
+
+Use the docs UI to explore the current recommended `/api/v3` routes. Protected endpoints accept the `accessToken` cookie, the legacy `token` cookie, or a Bearer JWT in the `Authorization` header.
+
 ### Prerequisites
 - Node.js (v18 or higher recommended)
 - MongoDB (local or Atlas)
