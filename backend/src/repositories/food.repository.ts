@@ -153,11 +153,18 @@ export const getFoodItemsWithUserState = async (
     },
   ];
 
+  //Check performance
+
+  const start = performance.now();
+
   // Execute aggregation
   const result = await Food.aggregate<{
     data: FoodItemWithStatus[];
     totalCount: Array<{ count: number }>;
   }>(pipeline);
+
+  const duration = (performance.now() - start).toFixed(2);
+  console.log(`Mongo Aggregate (${'GET/food'}): ${duration} ms`)
 
   //  RESULTS
   const foods = result[0]?.data || [];

@@ -19,6 +19,7 @@ import rootRouter from './routes';
 import openApiDocument from './docs/openapi';
 
 const app = express();
+app.set('trust proxy', 1); 
 const testMode = process.env.NODE_ENV === 'test';
 // Early log (before auth)
 !testMode && app.use((req, _res, next) => {
@@ -31,7 +32,6 @@ const testMode = process.env.NODE_ENV === 'test';
   next();
 });
 
-app.set('trust proxy', 1); 
 app.use(helmetMiddleware);
 app.use(globalApiLimiter);
 

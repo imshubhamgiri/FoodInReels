@@ -7,6 +7,7 @@ import { initSocket } from './src/config/socket.config';
 import { createServer } from 'http';
 import {videoUploadQueue as jobQueue , queueConnection , run} from './src/config/queue.config';
 import { registerShutdownHandlers } from './src/utils/gracefulShutdown';
+import './tracer';
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = '0.0.0.0';
