@@ -1,5 +1,6 @@
 import express  from 'express';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth.routes';
 import foodRoutes from './routes/food.routes';
 import profileRoutes from './routes/partnerProfile.routes';
@@ -15,6 +16,7 @@ import { helmetMiddleware } from './middleware/helmet';
 import userprofileRoutes from './routes/userProfiles.routes';
 import { getDbHealth } from './db/db';
 import rootRouter from './routes';
+import openApiDocument from './docs/openapi';
 
 const app = express();
 const testMode = process.env.NODE_ENV === 'test';
@@ -44,6 +46,22 @@ app.use(attachAuthContext);
 
 app.use('/api', rootRouter)
 app.use('/api/auth', authRoutes);
+
+app.get('/api-docs.json', (_req, res) => {
+  res.json(openApiDocument);
+});
+
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(openApiDocument, {
+    explorer: true,
+    customSiteTitle: 'FoodInReels API Docs',
+    swaggerOptions: {
+      displayRequestDuration: true,
+    },
+  })
+);
 
 app.use('/api/foods', foodRoutes);
 
