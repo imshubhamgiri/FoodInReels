@@ -53,4 +53,7 @@ const foodPartnerSchema = new Schema<IFoodPartner>(
   }
 );
 
+foodPartnerSchema.index({_id:1 , createdAt:-1});
+foodPartnerSchema.index({email:1});
+
 export const FoodPartner = mongoose.model<IFoodPartner>('FoodPartner', foodPartnerSchema);
