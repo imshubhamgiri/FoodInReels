@@ -7,8 +7,8 @@
     "test": "jest --forceExit --detectOpenHandles",
     "build": "tsc",
     "dev": "nodemon --exec ts-node server.ts",
-    "start:server": "node -r ./dist/tracer.js dist/server.js",
-    "start:worker": "node -r ./dist/tracer.js dist/src/workers/media.worker.js",
+    "start:server": "node dist/server.js",
+    "start:worker": "node dist/src/workers/media.worker.js",
     "start": "concurrently --kill-others --handle-input \"npm run start:server\" \"npm run start:worker\""
   },
   "keywords": [],
@@ -16,6 +16,11 @@
   "license": "ISC",
   "dependencies": {
     "@imagekit/nodejs": "^7.1.1",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.78.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.220.0",
+    "@opentelemetry/resources": "^2.9.0",
+    "@opentelemetry/sdk-node": "^0.220.0",
     "@types/swagger-ui-express": "^4.1.8",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.1",
