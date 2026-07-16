@@ -66,6 +66,7 @@ const issueTokens = async (payload: AuthTokenPayload): Promise<AuthTokens> => {
 export const getCookieOptions = (maxAge: number) => ({
   // Cross-site frontend (Vercel) + backend (Render) needs SameSite=None and Secure=true.
   httpOnly: true,
+  path: '/',
   secure: process.env.NODE_ENV === 'production',
   sameSite:
     (process.env.COOKIE_SAMESITE as 'lax' | 'strict' | 'none') ||

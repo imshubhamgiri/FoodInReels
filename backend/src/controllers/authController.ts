@@ -71,9 +71,9 @@ export const logoutuser = asyncHandler(
     if (req.user) {
       await revokeAllRefreshTokensForUser(req.user.id, req.user.type);
     }
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-    res.clearCookie('token');
+    res.clearCookie('accessToken', getAccessCookieOptions());
+    res.clearCookie('refreshToken', getRefreshCookieOptions());
+    res.clearCookie('token', getAccessCookieOptions());
     res.status(200).json({ success: true, message: 'Logout successful' });
   }
 );
@@ -126,9 +126,9 @@ export const logoutFoodpartner = asyncHandler(
     if (req.user) {
       await revokeAllRefreshTokensForUser(req.user.id, req.user.type);
     }
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
-    res.clearCookie('token');
+    res.clearCookie('accessToken', getAccessCookieOptions());
+    res.clearCookie('refreshToken', getRefreshCookieOptions());
+    res.clearCookie('token', getAccessCookieOptions());
     res.status(200).json({
       success: true,
       message: 'FoodPartner Logged out successfully',
