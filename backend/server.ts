@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import './tracer';
 import app from './src/app';
 import { connectDB } from './src/db/db';
 import redis from './src/db/redis';
@@ -7,7 +8,7 @@ import { initSocket } from './src/config/socket.config';
 import { createServer } from 'http';
 import {videoUploadQueue as jobQueue , queueConnection , run} from './src/config/queue.config';
 import { registerShutdownHandlers } from './src/utils/gracefulShutdown';
-import './tracer';
+
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = '0.0.0.0';
