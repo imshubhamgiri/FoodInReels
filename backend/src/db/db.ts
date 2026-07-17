@@ -28,7 +28,12 @@ export const connectDB = async (): Promise<void> => {
       throw new Error('MONGO_URL environment variable is not defined');
     }
 
-    await mongoose.connect(mongoUrl);
+    await mongoose.connect(mongoUrl,{
+      maxPoolSize: 10, // Adjust based on your traffic
+      minPoolSize: 2,  // Keeps connections warm
+      socketTimeoutMS: 45000,
+      serverSelectionTimeoutMS: 5000,
+    });
     console.log('✅ MongoDB connected successfully');
   } catch (error) {
     console.error('❌ Error connecting to MongoDB:', error);
