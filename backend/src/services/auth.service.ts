@@ -66,7 +66,6 @@ const issueTokens = async (payload: AuthTokenPayload): Promise<AuthTokens> => {
 export const getCookieOptions = (maxAge: number) => ({
   // Cross-site frontend (Vercel) + backend (Render) needs SameSite=None and Secure=true.
   httpOnly: true,
-  path: '/',
   secure: process.env.NODE_ENV === 'production',
   sameSite:
     (process.env.COOKIE_SAMESITE as 'lax' | 'strict' | 'none') ||
@@ -181,25 +180,29 @@ export const registerPartner = async (
 export const loginPartner = async (
   payload: FoodPartnerLogin
 ): Promise<{ profile: PartnerResponse; tokens: AuthTokens }> => {
-  const partner = await findPartnerByEmail(payload.email);
+  const cleanEmail = payload.email.trim().toLowerCase();
+  
+  // Execute the pure production function (Ensure Promise.all and explain are completely removed inside)
+  const partner = await findPartnerByEmail(cleanEmail);
+  
   if (!partner) {
     throw new AuthError('Invalid credentials');
   }
-
-  const isMatch = await bcrypt.compare(payload.password, partner.password);
+  const isMatch = await bcrypt.compare(payload.password, partner.password); 
   if (!isMatch) {
     throw new AuthError('Invalid credentials');
   }
-
-  await revokeAllRefreshTokensForUserRepo(partner._id.toString(), 'partner');
-
+  // revokeAllRefreshTokensForUser(partner._id.toString(), 'partner')
   const tokenPayload: AuthTokenPayload = {
     Id: partner._id.toString(),
-    email: partner.email,
+    email:cleanEmail,
     type: 'partner',
   };
-  const tokens = await issueTokens(tokenPayload);
-
+  const [tokens] = await Promise.all([
+    issueTokens(tokenPayload),
+    revokeAllRefreshTokensForUserRepo(partner._id.toString(), 'partner')
+  ]);
+  // const tokens = await issueTokens(tokenPayload);
   return {
     profile: {
       id: partner._id.toString(),
