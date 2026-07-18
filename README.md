@@ -1,6 +1,6 @@
 # 🍽️ FoodInReels - Food Discovery Platform
 
-A modern food ordering platform featuring Instagram/TikTok-style video reels where food partners showcase their dishes through engaging short videos. Built with MERN + TypeScript, featuring production-ready error handling, structured logging, and enterprise-grade architecture patterns.
+A modern food ordering platform featuring Instagram/TikTok-style video reels where food partners showcase their dishes through engaging short videos. Built with MERN + TypeScript, featuring production-ready error handling, structured logging, distributed tracing, and enterprise-grade architecture patterns.
 
 ## 🌐 Features
 
@@ -60,6 +60,14 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 - **Complete address info** - Street, city, state, postal code, country, landmark
 - **Profile endpoints** - `/api/v3/users/me` with dedicated address sub-routes
 
+### 📊 Observability & API Docs
+- **OpenAPI 3.0 spec** - Machine-readable contract at `/api-docs.json`
+- **Swagger UI** - Interactive explorer at `/api-docs` with request-duration display
+- **Structured request logging** - Winston logs with method, path, status, duration, and user context
+- **Distributed tracing** - OpenTelemetry NodeSDK with auto-instrumentation (Express, HTTP, MongoDB, etc.)
+- **Datadog OTLP export** - Production traces sent to Datadog when `DD_API_KEY` is configured
+- **Local trace fallback** - Console span exporter when no Datadog key is present
+
 ## 🛠️ Tech Stack
 
 ### Frontend
@@ -88,6 +96,9 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 - **Cookie-parser** - Secure httpOnly cookie handling
 - **Express Rate Limit** (v8) + **rate-limit-redis** - Redis-backed distributed rate limiting
 - **Concurrently** - Runs HTTP server and background worker as a single process group
+- **OpenTelemetry** (`@opentelemetry/sdk-node`) - Auto-instrumented distributed tracing
+- **Swagger UI Express** + **OpenAPI 3.0** - Interactive API documentation served from codebase
+- **Winston** (v3) - Environment-aware structured logging (dev / uat / production)
 - **Jest** & **Supertest** - Testing framework and HTTP assertions
 
 ### Architecture & Patterns (Backend)
@@ -133,8 +144,17 @@ A modern food ordering platform featuring Instagram/TikTok-style video reels whe
 - **Structured Logging** - Request/response logging with context
   - Environment-specific loggers (dev, uat, production)
   - Winston logger integration for production-grade logging
+  - Dual-phase HTTP logging: request received (early) + request completed (status, durationMs, user tag)
   - Error tracking with stack traces
   - Request timing and method logging
+
+- **Tracing & Observability** - OpenTelemetry-first instrumentation in `backend/tracer.ts`
+  - Auto-instrumentation for Express, HTTP clients, MongoDB, and other Node.js libraries
+  - Service resource tags: `service.name=foodinreels-api`, deployment environment
+  - **Production**: OTLP/HTTP exporter → Datadog (`https://otlp.us5.datadoghq.com/v1/traces`) when `DD_API_KEY` is set
+  - **Development**: `ConsoleSpanExporter` prints spans locally when no Datadog key is configured
+  - Metrics pipeline disabled (`OTEL_METRICS_EXPORTER=none`) — traces only
+  - Loaded as the **first import** in `server.ts` (`import './tracer'`) so instrumentation wraps the full boot sequence
 
 - **Graceful Shutdown** - Ordered teardown of WebSockets, BullMQ queues, HTTP server, MongoDB, and Redis connections
 
@@ -172,10 +192,13 @@ Zomato-reel/
 │
 ├── backend/                # Express backend (TypeScript, refactored)
 │   ├── server.ts           # HTTP server bootstrap + Socket.io + graceful shutdown
+│   ├── tracer.ts           # OpenTelemetry SDK (must import first in server.ts)
 │   ├── src/
 │   │   ├── config/         # Infrastructure configuration
 │   │   │   ├── queue.config.ts    # BullMQ queue & Redis connection
 │   │   │   └── socket.config.ts   # Socket.io + Redis Pub/Sub subscriber
+│   │   ├── docs/
+│   │   │   └── openapi.ts         # OpenAPI 3.0 spec (served at /api-docs)
 │   │   ├── controllers/    # Route handlers
 │   │   │   ├── authController.ts
 │   │   │   ├── food.controller.ts
@@ -231,9 +254,35 @@ Zomato-reel/
 ## 🚀 Installation & Setup
 
 ### Interactive API Docs
-The backend now serves Swagger UI at `http://localhost:3000/api-docs` and the raw OpenAPI document at `http://localhost:3000/api-docs.json`.
+The backend serves **Swagger UI** at `http://localhost:<PORT>/api-docs` and the raw OpenAPI 3.0 document at `http://localhost:<PORT>/api-docs.json` (use the port from your `.env`, typically `5000`).
 
-Use the docs UI to explore the current recommended `/api/v3` routes. Protected endpoints accept the `accessToken` cookie, the legacy `token` cookie, or a Bearer JWT in the `Authorization` header.
+The spec lives in `backend/src/docs/openapi.ts` and documents the current **`/api/v3`** surface. Protected endpoints accept:
+- `accessToken` cookie (primary)
+- Legacy `token` cookie
+- `Authorization: Bearer <JWT>` header
+
+Use the Swagger UI **Try it out** flow to explore endpoints with request-duration display enabled.
+
+### Tracing Setup (Optional — Datadog)
+
+Distributed tracing is configured in `backend/tracer.ts`. To enable it, uncomment the tracer import as the **first line** in `backend/server.ts`:
+
+```typescript
+import './tracer'; // must be first — before any other imports
+```
+
+Add to your backend `.env` for production trace export:
+
+```env
+DD_API_KEY=your_datadog_api_key
+```
+
+| Environment | Exporter | Destination |
+|-------------|----------|-------------|
+| `DD_API_KEY` set | OTLP/HTTP | Datadog US5 (`otlp.us5.datadoghq.com`) |
+| No key | Console | Spans printed to stdout (local dev) |
+
+Auto-instrumentation covers Express, outbound HTTP, MongoDB (Mongoose), and other supported libraries. Filesystem (`fs`) instrumentation is disabled to reduce noise.
 
 ### Prerequisites
 - Node.js (v18 or higher recommended)
@@ -291,6 +340,9 @@ JWT_SECRET=your_jwt_secret_key
 IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
 IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
 IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
+
+# Optional — enable Datadog trace export (requires import './tracer' in server.ts)
+# DD_API_KEY=your_datadog_api_key
 ```
 
 4. Start backend (HTTP server **and** background worker):
@@ -415,6 +467,32 @@ Socket.io runs on the same HTTP server as Express:
 
 The server bridges Redis Pub/Sub to WebSockets — the BullMQ worker publishes to Redis; the API process subscribes and fans out to the correct partner room. This decouples the worker process from direct Socket.io coupling.
 
+### Tracing & Observability Stack
+
+```
+server.ts
+  └── import './tracer'          ← OpenTelemetry SDK starts first
+        ├── Auto-instrumentation  ← Express, HTTP, Mongoose, etc.
+        ├── Resource tags         ← service.name, deployment.environment
+        └── Trace exporter
+              ├── DD_API_KEY set  → OTLP/HTTP → Datadog US5
+              └── No key          → ConsoleSpanExporter (local dev)
+
+app.ts middleware
+  ├── Early logger               ← appLogger.info on request received
+  ├── logging.ts                 ← durationMs + user tag on response finish
+  └── errorHandler.ts            ← structured JSON errors with timestamp
+
+/health                          ← DB connection state probe
+/api-docs                        ← Swagger UI (OpenAPI 3.0)
+```
+
+**Design notes:**
+- Traces-only mode: `OTEL_METRICS_EXPORTER=none` prevents unused metrics pipeline timeouts
+- OpenTelemetry internal diagnostics capped at `ERROR` level to reduce console noise
+- Production Winston logger writes to `logs/combined.log` and `logs/error.log` with JSON formatting
+- Swagger spec is source-controlled in `src/docs/openapi.ts` — update alongside route changes
+
 ### Error Handling System
 
 #### Custom Error Classes Hierarchy
@@ -518,15 +596,17 @@ The application uses **Winston** for production-grade structured logging with en
 
 // Features:
 - Timestamp tracking on all logs
-- Automatic request/response logging in middleware
+- Early request logging (method, path, IP) before auth middleware
+- Completion logging with statusCode, durationMs, and user tag (user:id / partner:id / anonymous)
 - Error stack traces with context
 - Environment-aware log levels (debug, info, warn, error)
+- Production defaultMeta: { service: 'foodinreels-api', env: 'production' }
 ```
 
 **Logger locations:**
 - Dev logs: Console output
 - UAT logs: File-based (logs/)
-- Production logs: File and error file separation
+- Production logs: `logs/combined.log`, `logs/error.log`, and console
 
 ### Authentication Context Attachment
 
@@ -575,6 +655,8 @@ export const register = asyncHandler(async (req, res) => {
 ```
 
 ## 📡 API Documentation
+
+> **Interactive reference:** Open `http://localhost:<PORT>/api-docs` for the full Swagger UI explorer. The sections below summarize the v3 surface; the OpenAPI spec in `backend/src/docs/openapi.ts` is the authoritative contract.
 
 All API endpoints are **versioned** under `/api/v{n}/`. Use **`/api/v3`** for all new integrations.
 
@@ -682,6 +764,14 @@ GET /api/v3/auth/me
 #### Foods — `/api/v3/foods`
 
 ```http
+GET /api/v3/foods
+# Protected: User authentication required
+# Query params: limit, id (cursor), lastCreatedAt
+# Returns: Paginated array of food items with like/save status
+
+GET /api/v3/foods/partners/:id
+# Public — all food items for a specific partner
+
 POST /api/v3/foods
 # Protected: Partner only
 # Content-Type: multipart/form-data
@@ -689,9 +779,14 @@ POST /api/v3/foods
 # Max file size: 5MB
 # Async: Returns 202 Accepted immediately; media processed in background via BullMQ
 # Response: { success: true, data: { foodItemId } }
-```
 
-> Food listing, update, and delete endpoints are available on **v2** (`/api/v2/foods`) until the v3 food module is expanded. v2 is deprecated — migrate to v3 when those routes ship.
+PATCH /api/v3/foods/:foodId
+# Protected: Partner only (owner)
+# Body: { name, description, price, type }
+
+DELETE /api/v3/foods/:foodId
+# Protected: Partner only (owner)
+```
 
 #### Actions — `/api/v3/actions`
 
@@ -748,6 +843,14 @@ GET /api/v3/partners/foodPartners/:id
 # Public — returns partner profile and their dishes
 ```
 
+#### Operations (Unversioned)
+
+```http
+GET /health
+# Returns: { status, uptime, environment, service, db: { state, isConnected } }
+# 200 when MongoDB connected, 503 when degraded
+```
+
 ---
 
 ### WebSocket Events (Real-Time)
@@ -769,8 +872,7 @@ socket.on('video_upload_status', (data) => {
 ### Deprecated Versions (Do Not Use for New Integrations)
 
 **v2** (`/api/v2`) — Sunset **2027-01-01**
-- Includes interim food CRUD: `GET /`, `GET /partners/:id`, `PATCH /:foodId`, `DELETE /:foodId`, `POST /`
-- Same auth, orders, users, partners, and actions surface as v3
+- Mirrors the v3 auth, orders, users, partners, actions, and foods surface — fully superseded by v3
 
 **v1** (`/api/v1`) — Sunset **2026-10-01**
 - Legacy non-RESTful path aliases only (e.g. `/foods/add`, `/foods/listfood`) — do not adopt
@@ -874,6 +976,7 @@ const FoodPartnerAuthMiddleware = async (req, res, next) => {
 - **Job queue decoupling** - Workers publish events; API process handles WebSocket fan-out
 - **Graceful shutdown** - SIGTERM/SIGINT handlers drain connections before exit
 - **API versioning** - Modular v1/v2/v3 route trees with IETF deprecation headers on legacy versions
+- **OpenAPI-first docs** - Swagger UI served from a source-controlled spec alongside route definitions
 
 ### Frontend Patterns
 - **React Hooks** - useState, useEffect for state management
@@ -1067,6 +1170,8 @@ try {
 - Full TypeScript with strict type checking
 - Enterprise-grade error handling with structured JSON responses
 - Versioned API (`/api/v3` current) with IETF deprecation on v1/v2
+- OpenAPI 3.0 spec + Swagger UI at `/api-docs`
+- OpenTelemetry distributed tracing (Datadog OTLP or console fallback)
 - Complete API with 20+ endpoints across auth, foods, actions, orders, users, partners
 - MongoDB transactions for data consistency
 - Redis-backed distributed rate limiting
@@ -1090,6 +1195,7 @@ try {
 - Redis for rate limiting, job queue, and Pub/Sub
 - BullMQ worker with retry policy and failure cleanup
 - Socket.io bridging Redis events to connected clients
+- OpenTelemetry auto-instrumentation with Datadog export
 - CI pipeline with MongoDB + Redis service containers
 
 ### Database ✅ Well-Structured
@@ -1103,7 +1209,7 @@ try {
 
 - Video autoplay requires user interaction on some browsers
 - v3 food uploads are capped at **5MB** per file (enforced by Multer in `v3Routes/food.routes.ts`)
-- Food list/update/delete endpoints are on deprecated v2 until v3 food CRUD is fully migrated
+- OpenTelemetry tracer import is commented out in `server.ts` by default — uncomment `import './tracer'` to activate
 - `npm run dev` starts the API server only — the BullMQ worker must be run separately (`npm run start:worker`)
 - Pending food items (async upload in progress) may appear in listings before media URLs are populated
 
@@ -1127,16 +1233,17 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Latest Update**: Versioned API routing (`/api/v3` current, v1/v2 deprecated with IETF Sunset headers), structured error responses with timestamps, v3 async food upload with 5MB limit, and modular route trees under `routes/v1Routes`, `routes/v2Routes`, `routes/v3Routes`.
+**Latest Update**: OpenTelemetry distributed tracing (`tracer.ts` + Datadog OTLP export), OpenAPI 3.0 Swagger UI at `/api-docs`, enhanced Winston request logging with duration/user context, and full v3 food CRUD (`GET`, `POST`, `PATCH`, `DELETE` on `/api/v3/foods`).
 
 ## 🙏 Acknowledgments
 
 - ImageKit for video CDN services
 - MongoDB for flexible database solution
 - Redis & BullMQ for reliable async job processing
+- OpenTelemetry & Datadog for distributed tracing
 - React community for excellent documentation
 - TikTok/Instagram for reel UI inspiration
 
 ---
 
-**Note**: This project demonstrates enterprise-level full-stack development practices. The backend implements type-safe error handling, versioned API routing with deprecation policy, event-driven async processing, proper separation of concerns (repository/service/controller/worker), and middleware-based request processing. Production deployment-ready with structured logging, distributed rate limiting, and real-time WebSocket notifications.
+**Note**: This project demonstrates enterprise-level full-stack development practices. The backend implements type-safe error handling, versioned API routing with deprecation policy, event-driven async processing, OpenTelemetry tracing, OpenAPI documentation, proper separation of concerns (repository/service/controller/worker), and middleware-based request processing. Production deployment-ready with structured logging, distributed rate limiting, and real-time WebSocket notifications.
