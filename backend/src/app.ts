@@ -1,11 +1,6 @@
 import express  from 'express';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
-import authRoutes from './routes/auth.routes';
-import foodRoutes from './routes/food.routes';
-import profileRoutes from './routes/partnerProfile.routes';
-import actionRoutes from './routes/useraction.routes';
-import orderRoutes from './routes/order.routes';
 import corsMiddleware from './middleware/cors';
 import logger from './middleware/logging';
 import appLogger from './logger';
@@ -13,7 +8,6 @@ import { attachAuthContext } from './middleware/auth';
 import { globalApiLimiter } from './middleware/rateLimiter';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { helmetMiddleware } from './middleware/helmet';
-import userprofileRoutes from './routes/userProfiles.routes';
 import { getDbHealth } from './db/db';
 import rootRouter from './routes';
 import openApiDocument from './docs/openapi';
@@ -45,7 +39,6 @@ app.use(attachAuthContext);
 
 
 app.use('/api', rootRouter)
-app.use('/api/auth', authRoutes);
 
 app.get('/api-docs.json', (_req, res) => {
   res.json(openApiDocument);
@@ -63,12 +56,12 @@ app.use(
   })
 );
 
-app.use('/api/foods', foodRoutes);
+// app.use('/api/foods', foodRoutes);
 
-app.use('/api/users', userprofileRoutes);
-app.use('/api/partners', profileRoutes);
-app.use('/api/actions',actionRoutes)
-app.use('/api/v1/orders', orderRoutes);
+// app.use('/api/users', userprofileRoutes);
+// app.use('/api/partners', profileRoutes);
+// app.use('/api/actions',actionRoutes)
+// app.use('/api/v1/orders', orderRoutes);
 
 app.get('/', (_req, res) => {
   res.send('Backend is running');
