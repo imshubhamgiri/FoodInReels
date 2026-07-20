@@ -2,6 +2,7 @@ import type { Logger } from 'winston';
 import devLogger from './devLogger';
 import uatLogger from './uatLogger';
 import productionLogger from './productionLogger';
+import { OpenTelemetryTransportV3 } from '@opentelemetry/winston-transport';
 
 const env = process.env.NODE_ENV;
 
@@ -20,5 +21,7 @@ switch (env) {
         logger = devLogger;
         break;
 }
+
+logger.add(new OpenTelemetryTransportV3());
 
 export default logger;
