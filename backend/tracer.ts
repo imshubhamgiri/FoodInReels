@@ -2,18 +2,19 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Disable the auto-created metrics pipeline — we're only sending traces.
-// Must be set before NodeSDK is instantiated.
-process.env.OTEL_METRICS_EXPORTER = 'none';
-
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
-// Force OpenTelemetry internal logging to error to eliminate metric timeout spam
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
 
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
+import { PeriodicExportingMetricReader, AggregationTemporality } from '@opentelemetry/sdk-metrics'; 
+import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
+
 import { resourceFromAttributes, defaultResource } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_DEPLOYMENT_ENVIRONMENT_NAME } from '@opentelemetry/semantic-conventions';
 
@@ -33,12 +34,31 @@ const sdk = new NodeSDK({
 
   traceExporter: hasDatadogKey
     ? new OTLPTraceExporter({
-        url: 'https://otlp.us5.datadoghq.com/v1/traces', // <-- fixed: path added
-        headers: {
-          'dd-api-key': process.env.DD_API_KEY as string,
-        },
+        url: 'https://otlp.us5.datadoghq.com/v1/traces',
+        headers: { 'dd-api-key': process.env.DD_API_KEY as string },
       })
     : new ConsoleSpanExporter(),
+
+  // --- Added DELTA temporality preference for Datadog ---
+  metricReader: hasDatadogKey
+    ? new PeriodicExportingMetricReader({
+        exporter: new OTLPMetricExporter({
+          url: 'https://otlp.us5.datadoghq.com/v1/metrics',
+          headers: { 'dd-api-key': process.env.DD_API_KEY as string },
+          temporalityPreference: AggregationTemporality.DELTA,
+        }),
+      })
+    : undefined,
+
+  // --- Fixed syntax using the correct configuration options object ---
+  logRecordProcessor: hasDatadogKey
+    ? new SimpleLogRecordProcessor({
+        exporter: new OTLPLogExporter({
+          url: 'https://otlp.us5.datadoghq.com/v1/logs',
+          headers: { 'dd-api-key': process.env.DD_API_KEY as string },
+        })
+      })
+    : undefined,
 
   instrumentations: [
     getNodeAutoInstrumentations({
