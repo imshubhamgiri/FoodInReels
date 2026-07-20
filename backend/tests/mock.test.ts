@@ -20,6 +20,8 @@ import redis from '../src/db/redis';
 // TEST SETUP & TEARDOWN
 // ============================================================================
 
+const Base_URL = '/api/v3';
+
 beforeAll(async () => {
   const url = process.env.TEST_MONGODB_URI || 'mongodb://127.0.0.1:27017/testdb';
   await mongoose.connect(url);
@@ -65,7 +67,7 @@ describe('AUTH - User Registration Tests', () => {  //passed individually
     };
 
     const response = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send(userData)
       .expect(201);
 
@@ -85,12 +87,12 @@ describe('AUTH - User Registration Tests', () => {  //passed individually
 
     // Register first user
     await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send(userData);
 
     // Try to register with same email
     await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send(userData)
       .expect(409);
 
@@ -100,7 +102,7 @@ describe('AUTH - User Registration Tests', () => {  //passed individually
 
   it('should fail to register with invalid email format', async () => {
     const response = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send({
         name: 'John Doe',
         email: 'invalid-email',
@@ -113,7 +115,7 @@ describe('AUTH - User Registration Tests', () => {  //passed individually
 
   it('should fail to register with weak password', async () => {
     const response = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send({
         name: 'John Doe',
         email: 'john1@example.com',
@@ -126,7 +128,7 @@ describe('AUTH - User Registration Tests', () => {  //passed individually
 
   it('should fail to register with missing required fields', async () => {
     const response = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send({
         email: 'john2@example.com',
         // Missing name and password
@@ -144,7 +146,7 @@ describe('AUTH - User Registration Tests', () => {  //passed individually
     };
 
     await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send(userData);
 
     const user = await User.findOne({ email: userData.email }).select('+password');
@@ -170,7 +172,7 @@ describe('AUTH - User Login Tests', () => {  //passed individually
 
   it('should login user with correct credentials', async () => {
     const response = await request(app)
-      .post('/api/auth/users/login')
+      .post(`${Base_URL}/auth/users/login`)
       .send({
         email: 'john@example.com',
         password: 'Password123!',
@@ -185,7 +187,7 @@ describe('AUTH - User Login Tests', () => {  //passed individually
 
   it('should fail login with wrong password', async () => {
     const response = await request(app)
-      .post('/api/auth/users/login')
+      .post(`${Base_URL}/auth/users/login`)
       .send({
         email: 'john@example.com',
         password: 'WrongPassword123!',
@@ -197,7 +199,7 @@ describe('AUTH - User Login Tests', () => {  //passed individually
 
   it('should fail login with non-existent user', async () => {
     const response = await request(app)
-      .post('/api/auth/users/login')
+      .post(`${Base_URL}/auth/users/login`)
       .send({
         email: 'nonexistent@example.com',
         password: 'Password123!',
@@ -209,7 +211,7 @@ describe('AUTH - User Login Tests', () => {  //passed individually
 
   it('should set auth cookies on successful login', async () => {
     const response = await request(app)
-      .post('/api/auth/users/login')
+      .post(`${Base_URL}/auth/users/login`)
       .send({
         email: 'john@example.com',
         password: 'Password123!',
@@ -252,7 +254,7 @@ describe('FOOD - Get Food Items Tests', () => {     // passed individually
     });
 
     const loginResponse = await request(app)
-      .post('/api/auth/users/login')
+      .post(`${Base_URL}/auth/users/login`)
       .send({ email: 'testuser@example.com', password: 'Password123!' });
 
     accessToken = loginResponse.body.tokens.accessToken;
@@ -280,7 +282,7 @@ describe('FOOD - Get Food Items Tests', () => {     // passed individually
 
   it('should get all food items with pagination', async () => {
     const response = await request(app)
-      .get('/api/foods/')
+      .get(`${Base_URL}/foods`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -291,7 +293,7 @@ describe('FOOD - Get Food Items Tests', () => {     // passed individually
 
   it('should get food items with limit parameter', async () => {
     const response = await request(app)
-      .get('/api/foods/?limit=1')
+      .get(`${Base_URL}/foods?limit=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -300,7 +302,7 @@ describe('FOOD - Get Food Items Tests', () => {     // passed individually
 
   it('should get food items by partner ID', async () => {
     const response = await request(app)
-      .get(`/api/foods/partners/${foodPartnerId}`)
+      .get(`/api/v3/foods/partners/${foodPartnerId}`)
       .expect(200);
 
     expect(response.body.success).toBe(true);
@@ -312,7 +314,7 @@ describe('FOOD - Get Food Items Tests', () => {     // passed individually
 
   it('should fail to get food with invalid partner ID format', async () => {
     const response = await request(app)
-      .get('/api/foods/partners/invalid-id')
+      .get('/api/v3/foods/partners/invalid-id')
       .expect(400);
 
     expect(response.body.success).toBe(false);
@@ -343,7 +345,7 @@ describe('FOOD - Delete Food Item Tests', () => {     // passed individually
     };
 
     const partnerResponse = await request(app)
-      .post('/api/auth/partners/register')
+      .post('/api/v3/auth/partners/register')
       .send(partnerData);
 
     foodPartnerId = partnerResponse.body.user.id;
@@ -363,7 +365,7 @@ describe('FOOD - Delete Food Item Tests', () => {     // passed individually
 
   it('should delete food item by owner', async () => {
     const response = await request(app)
-      .delete(`/api/foods/${foodId}`)
+      .delete(`/api/v3/foods/${foodId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -376,7 +378,7 @@ describe('FOOD - Delete Food Item Tests', () => {     // passed individually
   it('should fail to delete non-existent food item', async () => {
     const fakeId = new mongoose.Types.ObjectId().toString();
     const response = await request(app)
-      .delete(`/api/foods/${fakeId}`)
+      .delete(`/api/v3/foods/${fakeId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
@@ -386,7 +388,7 @@ describe('FOOD - Delete Food Item Tests', () => {     // passed individually
 
   it('should fail to delete food with invalid ID format', async () => {
     const response = await request(app)
-      .delete('/api/foods/invalid-id')
+      .delete('/api/v3/foods/invalid-id')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -408,7 +410,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
 
     // Create user
     const userResponse = await request(app)
-      .post('/api/auth/users/register')
+      .post('/api/v3/auth/users/register')
       .send({
         name: 'John Doe',
         email: 'john@example.com',
@@ -420,7 +422,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
 
     // Create food partner
     const partnerResponse = await request(app)
-      .post('/api/auth/partners/register')
+      .post('/api/v3/auth/partners/register')
       .send({
         name: 'Pizza Hub',
         email: 'pizzahub@example.com',
@@ -467,7 +469,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
     };
 
     const response = await request(app)
-      .post('/api/V1/orders')
+      .post('/api/v3/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send(orderData);
     console.log(response.body);
@@ -503,7 +505,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
     };
 
     const response = await request(app)
-      .post('/api/V1/orders')
+      .post('/api/v3/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send(orderData);
 
@@ -512,7 +514,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
 
   it('should fail to create order without authentication', async () => {
     const response = await request(app)
-      .post('/api/V1/orders')
+      .post('/api/v3/orders')
       .send({
         foodPartner: foodPartnerId,
         items: [],
@@ -524,7 +526,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
 
   it('should fail with missing delivery address', async () => {
     const response = await request(app)
-      .post('/api/V1/orders')
+      .post('/api/v3/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         foodPartner: foodPartnerId,
@@ -538,7 +540,7 @@ describe('ORDER - Create Order Tests', () => {    //passed individually
 
   it('should fail with empty items array', async () => {
     const response = await request(app)
-      .post('/api/V1/orders')
+      .post('/api/v3/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         foodPartner: foodPartnerId,
@@ -571,7 +573,7 @@ describe('USER PROFILE - Get Profile Tests', () => {  //passed individaully
     await cleanDatabase();
 
     const response = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send({
         name: 'John Doe',
         email: 'john@example.com',
@@ -584,7 +586,7 @@ describe('USER PROFILE - Get Profile Tests', () => {  //passed individaully
 
   it('should get user profile with valid authentication', async () => {  //passed
     const response = await request(app)
-      .get('/api/users/me')
+      .get(`${Base_URL}/users/me`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -595,7 +597,7 @@ describe('USER PROFILE - Get Profile Tests', () => {  //passed individaully
 
   it('should fail to get profile without authentication', async () => {   //passed
     const response = await request(app)
-      .get('/api/users/me')
+      .get('/api/v3/users/me')
       .expect(401);
 
     expect(response.body.success).toBe(false);
@@ -603,7 +605,7 @@ describe('USER PROFILE - Get Profile Tests', () => {  //passed individaully
 
   it('should fail with invalid token', async () => {   //passed
     const response = await request(app)
-      .get('/api/users/me')
+      .get(`${Base_URL}/users/me`)
       .set('Authorization', 'Bearer invalid-token')
       .expect(401);
 
@@ -626,7 +628,7 @@ describe('ERROR HANDLING - General Error Cases', () => {  //passed individaully
 
   it('should return proper error response structure', async () => {
     const response = await request(app)
-      .post('/api/auth/users/login')
+      .post(`${Base_URL}/auth/users/login`)
       .send({
         email: 'nonexistent@example.com',
         password: 'password',
@@ -671,7 +673,7 @@ describe('AUTH - Partner Registration Tests', () => { //passed individually
     };
 
     const response = await request(app)
-      .post('/api/auth/partners/register')
+      .post(`${Base_URL}/auth/partners/register`)
       .send(partnerData)
       .expect(201);
 
@@ -692,11 +694,11 @@ describe('AUTH - Partner Registration Tests', () => { //passed individually
     };
 
     await request(app)
-      .post('/api/auth/partners/register')
+      .post(`${Base_URL}/auth/partners/register`)
       .send(partnerData);
 
     const response = await request(app)
-      .post('/api/auth/partners/register')
+      .post(`${Base_URL}/auth/partners/register`)
       .send(partnerData)
       .expect(409);
 
@@ -715,7 +717,7 @@ describe('AUTH - Token Refresh Tests', () => {    //passed individually
     await cleanDatabase();
     
     const registerResponse = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send({
         name: 'John Doe',
         email: 'john@example.com',
@@ -727,7 +729,7 @@ describe('AUTH - Token Refresh Tests', () => {    //passed individually
 
   it('should refresh access token with valid refresh token', async () => {
     const response = await request(app)
-      .post('/api/auth/refresh')
+      .post('/api/v3/auth/refresh')
       .send({ refreshToken })
       .expect(200);
 
@@ -737,7 +739,7 @@ describe('AUTH - Token Refresh Tests', () => {    //passed individually
 
   it('should fail to refresh with invalid refresh token', async () => {
     const response = await request(app)
-      .post('/api/auth/refresh')
+      .post('/api/v3/auth/refresh')
       .send({ refreshToken: 'invalid-token' })
       console.log(response.body);
 
@@ -757,7 +759,7 @@ describe('USER PROFILE - Update Profile Tests', () => {
     await cleanDatabase();
 
     const response = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send({
         name: 'John Doe',
         email: 'john@example.com',
@@ -776,7 +778,7 @@ describe('USER PROFILE - Update Profile Tests', () => {
     };
 
     const response = await request(app)
-      .patch('/api/users/me')
+      .patch('/api/v3/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .send(updateData)
       .expect(200);
@@ -787,7 +789,7 @@ describe('USER PROFILE - Update Profile Tests', () => {
 
   it('should fail to update profile without authentication', async () => {
     const response = await request(app)
-      .patch('/api/users/me')
+      .patch('/api/v3/users/me')
       .send({ name: 'Jane Doe' })
       .expect(401);
 
@@ -809,7 +811,7 @@ describe('USER PROFILE - Update Profile Tests', () => {
     };
 
     const response = await request(app)
-      .post('/api/users/me/addresses')
+      .post('/api/v3/users/me/addresses')
       .set('Authorization', `Bearer ${accessToken}`)
       .send(addressData)
       .expect(201);
@@ -832,7 +834,7 @@ describe('FOOD - Update Food Item Tests', () => {
     await cleanDatabase();
 
     const partnerResponse = await request(app)
-      .post('/api/auth/partners/register')
+      .post('/api/v3/auth/partners/register')
       .send({
         name: 'Pizza Hub',
         email: 'pizzahub@example.com',
@@ -867,7 +869,7 @@ describe('FOOD - Update Food Item Tests', () => {
     };
 
     const response = await request(app)
-      .patch(`/api/foods/${foodId}`)
+      .patch(`/api/v3/foods/${foodId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send(updateData)
       console.log(response.body);
@@ -879,7 +881,7 @@ describe('FOOD - Update Food Item Tests', () => {
 
   it('should fail to update food without authentication', async () => {
     const response = await request(app)
-      .patch(`/api/foods/${foodId}`)
+      .patch(`/api/v3/foods/${foodId}`)
       .send({ name: 'Updated Pizza' })
       .expect(401);
 
@@ -899,7 +901,7 @@ describe('ORDER - Retrieve Orders Tests', () => {   //removed as order retrieval
     await cleanDatabase();
 
     const response = await request(app)
-      .post('/api/auth/users/register')
+      .post('/api/v3/auth/users/register')
       .send({
         name: 'John Doe',
         email: 'john@example.com',
@@ -912,7 +914,7 @@ describe('ORDER - Retrieve Orders Tests', () => {   //removed as order retrieval
 
   it('should get user orders with authentication', async () => {
     const response = await request(app)
-      .get('/api/V1/orders/my-orders')
+      .get('/api/v3/orders/my-orders')
       .set('Authorization', `Bearer ${accessToken}`)
       console.log(response.body)
 
@@ -922,7 +924,7 @@ describe('ORDER - Retrieve Orders Tests', () => {   //removed as order retrieval
 
   it('should fail to get orders without authentication', async () => {
     const response = await request(app)
-      .get('/api/V1/orders/my-orders')
+      .get('/api/v3/orders/my-orders')
       .expect(401);
 
     expect(response.body.success).toBe(false);
@@ -946,7 +948,7 @@ describe('VALIDATION - Email and Password Requirements', () => {
 
     for (const email of invalidEmails) {
       const response = await request(app)
-        .post('/api/auth/users/register')
+        .post(`${Base_URL}/auth/users/register`)
         .send({
           name: 'John Doe',
           email,
@@ -968,7 +970,7 @@ describe('VALIDATION - Email and Password Requirements', () => {
     // Test passwords that are too short
     for (const password of weakPasswords.slice(0, 2)) {
       const response = await request(app)
-        .post('/api/auth/users/register')
+        .post(`${Base_URL}/auth/users/register`)
         .send({
           name: 'John Doe',
           email: `test-${Math.random()}@example.com`,
@@ -995,7 +997,7 @@ describe('CONCURRENCY - Multiple Simultaneous Requests', () => {
     for (let i = 0; i < 3; i++) {
       promises.push(
         request(app)
-          .post('/api/auth/users/register')
+          .post(`${Base_URL}/auth/users/register`)
           .send({
             name: names[i],
             email: `user${i}@example.com`,
@@ -1025,7 +1027,7 @@ describe('AUTH - Logout & Session Management Tests', () => {
     await cleanDatabase();
 
     const response = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send({
         name: 'John Doe',
         email: 'john@example.com',
@@ -1038,7 +1040,7 @@ describe('AUTH - Logout & Session Management Tests', () => {
 
   it('should logout user successfully', async () => {
     const response = await request(app)
-      .post('/api/auth/users/logout')
+      .post('/api/v3/auth/users/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refreshToken })
       .expect(200);
@@ -1048,13 +1050,13 @@ describe('AUTH - Logout & Session Management Tests', () => {
 
   it('should invalidate refresh token after logout', async () => {
     await request(app)
-      .post('/api/auth/users/logout')
+      .post('/api/v3/auth/users/logout')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ refreshToken });
 
     // Try to use the refresh token
     const response = await request(app)
-      .post('/api/auth/refresh')
+      .post('/api/v3/auth/refresh')
       .send({ refreshToken })
       .expect(401);
 
@@ -1072,7 +1074,7 @@ describe('DATA CONSISTENCY - Database State Tests', () => {
   it('should maintain data consistency across operations', async () => {
     // Register user
     const registerResponse = await request(app)
-      .post('/api/auth/users/register')
+      .post(`${Base_URL}/auth/users/register`)
       .send({
         name: 'John Doe',
         email: 'john@example.com',
@@ -1089,7 +1091,7 @@ describe('DATA CONSISTENCY - Database State Tests', () => {
 
     // Get profile and verify consistency
     const profileResponse = await request(app)
-      .get('/api/users/me')
+      .get('/api/v3/users/me')
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(profileResponse.body.data.email).toBe(user?.email);
@@ -1097,7 +1099,7 @@ describe('DATA CONSISTENCY - Database State Tests', () => {
 
   it('should prevent duplicate food items with same properties', async () => {
     const partnerResponse = await request(app)
-      .post('/api/auth/partners/register')
+      .post(`${Base_URL}/auth/partners/register`)
       .send({
         name: 'Pizza Hub',
         email: 'pizzahub@example.com',
