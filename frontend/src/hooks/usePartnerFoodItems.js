@@ -66,8 +66,7 @@ export default function usePartnerFoodItems(partnerId, autoFetchFood = true) {
 
   const deleteFoodItem = async (foodId) => {
     try {
-      await axios.delete(`${API_URL}foods/delete`, {
-        data: { foodId },
+      await axios.delete(`${API_URL}foods/${foodId}`, {
         withCredentials: true
       });
       setFoodItems(prev => prev.filter(item => item._id !== foodId));
