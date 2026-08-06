@@ -1,15 +1,15 @@
-import React, { useContext, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { userAPI, authAPI } from '../services/api';
 import { Mail } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { useEffect } from 'react';
 
 function UserLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login, user, isAuthenticated, isAuthLoading } = useAppContext();
+  const demoUserEmail = import.meta.env.VITE_TEST_USER_EMAIL;
+  const demoUserPassword = import.meta.env.VITE_TEST_USER_PASSWORD;
 
   useEffect(() => {
     // If auth finishes loading and user is already authenticated, don't let them see login
@@ -24,6 +24,7 @@ function UserLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     const email = e.target.email.value;
     const password = e.target.password.value;
 
@@ -38,6 +39,27 @@ function UserLogin() {
       setLoading(false);
     }
   };
+
+  const handleDemoLogin = async () => {
+    setError('');
+
+    if (!demoUserEmail || !demoUserPassword) {
+      setError('Demo user credentials are not configured in the frontend env file.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await login({ email: demoUserEmail, password: demoUserPassword });
+      navigate('/user/profile');
+    } catch (loginError) {
+      console.error(loginError);
+      setError(loginError.response?.data?.message || 'Login failed. Please check your demo credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const customStyles = `
     @keyframes fadeInUp {
       from{
@@ -173,13 +195,21 @@ function UserLogin() {
             </div>
           </div>
 
-          <div className='initial-hidden animate-fadeInDown'>
+          <div className='initial-hidden animate-fadeInDown flex flex-col gap-2 mt-4'>
             <button
               type="submit"
               className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               disabled={loading}>
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in as Test User'}
+            </button>
+
           </div>
 
           <div className="text-center">

@@ -8,6 +8,8 @@ function PartnerLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { partnerLogin, user, isAuthenticated, isAuthLoading } = useAppContext();
+  const demoPartnerEmail = import.meta.env.VITE_TEST_PARTNER_EMAIL;
+  const demoPartnerPassword = import.meta.env.VITE_TEST_PARTNER_PASSWORD;
 
   useEffect(() => {
     // If auth finishes loading and user is already authenticated, don't let them see login
@@ -22,6 +24,7 @@ function PartnerLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     const email = e.target.email.value;
     const password = e.target.password.value;
 
@@ -32,6 +35,26 @@ function PartnerLogin() {
     } catch (error) {
       console.error("Error reason :", error.response?.data?.message || error.message);
       setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setError('');
+
+    if (!demoPartnerEmail || !demoPartnerPassword) {
+      setError('Demo partner credentials are not configured in the frontend env file.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await partnerLogin({ email: demoPartnerEmail, password: demoPartnerPassword });
+      navigate('/partner/profile');
+    } catch (loginError) {
+      console.error('Error reason :', loginError.response?.data?.message || loginError.message);
+      setError(loginError.response?.data?.message || 'Login failed. Please check your demo credentials.');
     } finally {
       setLoading(false);
     }
@@ -144,12 +167,19 @@ function PartnerLogin() {
               </div>
             </div>
 
-            <div className='initial-hidden animate-fadeInDown mt-6'>
+            <div className='initial-hidden animate-fadeInDown mt-6 flex flex-col gap-2'>
               <button
                 type="submit"
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-sky-600/90 hover:bg-sky-700/90 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all"
                 disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign in'}
+              </button>
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-slate-600/90 hover:bg-slate-700/90 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all"
+                disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign in as Test Partner'}
               </button>
             </div>
 
