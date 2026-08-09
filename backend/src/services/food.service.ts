@@ -15,13 +15,14 @@ interface uploadFood{
     description: string,
     price: number,
     type: 'standard' | 'reel',
+    uploadStatus:'processing'|'completed' | 'failed',
     foodPartner: string,
     image?:string,
     video?:string,
     videoPublicId?:string
 }
 
-type InitialFoodFields = Omit<uploadFood, 'foodPartner' | 'image' | 'video' | 'videoPublicId'>;
+type InitialFoodFields = Omit<uploadFood, 'foodPartner' | 'image' | 'video' | 'videoPublicId' | 'uploadStatus'>;
 
 
 export const getFoodItems = async (
@@ -55,6 +56,7 @@ export const getFoodByPartnerId = async (partnerId: string): Promise<any[]> => {
 };
 
 export const deleteFoodItem = async (foodId: string, userId: string): Promise<void> => {
+  console.log('Attempting to delete food item with ID:', foodId, 'by user:', userId);
   if (!foodId.match(/^[0-9a-fA-F]{24}$/)) {
     throw new ValidationError('Invalid food ID format');
   }
@@ -90,6 +92,7 @@ export const addFoodItem = async (data: InitialFoodFields, file: File, foodPartn
     price: data.price,
     type: data.type,
     foodPartner: foodPartnerId,
+    uploadStatus:'completed'
   };
 
   if (data.type === 'standard') {
@@ -110,6 +113,7 @@ export const enqueueBackgroundUpload = async (data:InitialFoodFields , foodPartn
     price: data.price,
     type: data.type,
     foodPartner: foodPartnerId,
+    uploadStatus:'processing',
     // We can add a field to your schema like uploadStatus: 'processing' if desired, 
     // or just leave video/image blank to signify it's pending.
   };
@@ -169,6 +173,7 @@ export const processBackgroundUpload = async (foodItemId: string, file: File, ty
     updateData.video = imageUploadResponse.url;
     updateData.videoPublicId = imageUploadResponse.fileId;
   }
+  updateData.uploadStatus = 'completed'
 
   // Update the document via your repository
   return await foodRepository.updateFoodItem(foodItemId, updateData);
