@@ -11,6 +11,10 @@ import { IFood } from '../types';
          required: true,
           index: true 
         },
+    uploadStatus:{type:String , 
+        enum:['processing' , 'completed', 'failed'],
+        default:'processing'
+    },
     description: { type: String, required: true, trim: true },
     price: { type: Number, required: true },
     likeCount: { type: Number, default: 0 },
