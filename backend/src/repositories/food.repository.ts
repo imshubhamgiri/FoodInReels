@@ -17,7 +17,7 @@ export const getFoodItemsWithUserState = async (
 }> => {
   // CURSOR FILTER
   let cursorMatch: any = {};
-
+  // cursorMatch.$and = [{ uploadStatus: 'completed' }];
   if (id && lastCreatedAt) {
     // Convert id string to ObjectId 
     const cursorId = new Types.ObjectId(id);

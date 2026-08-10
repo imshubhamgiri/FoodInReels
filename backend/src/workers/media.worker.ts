@@ -27,17 +27,17 @@ async function bootstrapWorker() {
     for (const state of states) {
       await videoUploadQueue.clean(0, 0, state);
     }
-    console.log('✅ Queue state verified successfully.');
+    console.log(' Queue state verified successfully.');
 
     // Establish Database Connection
     await mongoose.connect(mongoUri);
-    console.log('✅ Worker successfully connected to MongoDB database.');
+    console.log(' Worker successfully connected to MongoDB database.');
     
     // NOW start the worker so it keeps the process alive permanently
     startBullMQWorker();
 
   } catch (err) {
-    console.error('❌ Critical failure during worker bootstrap sequence:', err);
+    console.error(' Critical failure during worker bootstrap sequence:', err);
   }
 }
 

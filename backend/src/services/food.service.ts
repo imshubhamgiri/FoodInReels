@@ -56,7 +56,6 @@ export const getFoodByPartnerId = async (partnerId: string): Promise<any[]> => {
 };
 
 export const deleteFoodItem = async (foodId: string, userId: string): Promise<void> => {
-  console.log('Attempting to delete food item with ID:', foodId, 'by user:', userId);
   if (!foodId.match(/^[0-9a-fA-F]{24}$/)) {
     throw new ValidationError('Invalid food ID format');
   }
