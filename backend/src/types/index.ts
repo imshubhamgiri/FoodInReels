@@ -15,7 +15,7 @@ export interface ApiResponse<T = any> {
 }
 export interface PaginationResponse<T> extends ApiResponse<T[]> {
   pagination: {
-    total: number;
+    // total: number;
     limit: number;
     hasMore: boolean;
     nextCursor: { id: string; lastCreatedAt: string } | null;
@@ -27,6 +27,11 @@ user: Types.ObjectId,
 food: Types.ObjectId
 }
 
+export interface FoodPartnerSummary {
+  _id: string;
+  name: string;
+}
+
 export interface FoodItemWithStatus {
   _id: Types.ObjectId;
   name: string;
@@ -34,7 +39,7 @@ export interface FoodItemWithStatus {
   videoPublicId: string;
   description: string;
   price: number;
-  foodPartner: string;
+  foodPartner: FoodPartnerSummary;
   likeCount: number;
   saveCount: number;
   isLiked?: boolean;
@@ -67,7 +72,7 @@ export interface FoodItemResponse {
   videoPublicId: string;
   description: string;
   price: number;
-  foodPartner: string;
+  foodPartner: FoodPartnerSummary;
   isLiked?: boolean;
   isSaved?: boolean;
 }
@@ -95,6 +100,7 @@ export interface IFood  {
   image: string;
   type: 'standard' | 'reel';
   description: string;
+  uploadStatus:'processing' | 'completed' | 'failed';
   price: number;
   likeCount: number;
   saveCount: number;
