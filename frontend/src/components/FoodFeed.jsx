@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useState , useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { products } from '../data/products';
+// import { products } from '../data/products';
 import FoodCard from './FoodCard';
+import { foodAPI } from '../services/api';
 
 const FoodFeed = () => {
+  const [productsList, setProductsList] =useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const res = await foodAPI.getAllFoods(new URLSearchParams({ limit: 20 }));
+      console.log('Fetched products:', res.data);
+      setProductsList(res.data);
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
     <section className="py-12 md:py-20 bg-white dark:bg-black transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,8 +40,8 @@ const FoodFeed = () => {
 
         {/* Grid Section */}
          <div className="grid grid-rows-2 grid-flow-col gap-4 overflow-x-auto pb-6 snap-x snap-mandatory md:grid-rows-none md:grid-flow-row md:grid-cols-3 lg:grid-cols-4 md:gap-8 auto-cols-[calc(50%-8px)] sm:auto-cols-[calc(33.333%-16px)] md:auto-cols-auto" style={{ scrollbarWidth: 'none' }}>
-          {products.map((product) => (
-            <div key={product.id} className="snap-start h-full">
+          {productsList.map((product) => (
+            <div key={product._id} className="snap-start h-full">
               <FoodCard product={product} />
             </div>
           ))}
