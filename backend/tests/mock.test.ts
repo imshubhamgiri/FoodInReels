@@ -264,6 +264,7 @@ describe('FOOD - Get Food Items Tests', () => {     // passed individually
       {
         name: 'Margherita Pizza',
         description: 'Classic pizza',
+        uploadStatus: 'completed',
         price: 500,
         type: 'standard',
         foodPartner: foodPartnerId,
@@ -272,6 +273,7 @@ describe('FOOD - Get Food Items Tests', () => {     // passed individually
       {
         name: 'Pepperoni Pizza',
         description: 'Pepperoni pizza',
+        uploadStatus:'completed',
         price: 600,
         type: 'standard',
         foodPartner: foodPartnerId,
