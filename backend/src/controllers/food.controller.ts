@@ -134,7 +134,6 @@ export const getFoodItems = asyncHandler(
       message: 'Food items retrieved successfully',
       data: paginatedResponse.foods,
       pagination: {
-        total: paginatedResponse.total,
         limit,
         hasMore: paginatedResponse.hasMore,
         nextCursor: paginatedResponse.nextCursor,
