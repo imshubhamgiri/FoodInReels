@@ -29,7 +29,8 @@ food: Types.ObjectId
 
 export interface FoodPartnerSummary {
   _id: string;
-  name: string;
+  name?: string;
+  restaurantName?: string;
 }
 
 export interface FoodItemWithStatus {
