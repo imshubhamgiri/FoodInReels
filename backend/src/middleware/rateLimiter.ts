@@ -21,7 +21,7 @@ const redisStore =function store(customPrefix:string){
 
 
 
-export const globalApiLimiter =  rateLimit({
+export const globalApiLimiter = isTestEnv ? skipRequestHandler : rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
   standardHeaders: true,
