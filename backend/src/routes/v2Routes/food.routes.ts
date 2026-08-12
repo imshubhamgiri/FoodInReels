@@ -12,7 +12,7 @@ const requirePartner = [requireAuth, requireRole(['partner'])];
 // Refined routes (generic routes LAST)
 foodroutes.post('/', requirePartner, upload.single('media'), validateAddFoodRequest, foodController.uploadFoodMediaInBackground);
 foodroutes.post('/background', requirePartner, upload.single('media'), validateAddFoodRequest, foodController.uploadFoodMediaInBackground);
-foodroutes.get('/', requireAuth, foodController.getFoodItems);
+foodroutes.get('/', foodController.getFoodItems);
 foodroutes.get('/partners/:id', foodController.GetfoodById);
 foodroutes.patch('/:foodId', requirePartner, (req, _res, next) => {
 	req.body = req.body || {};
