@@ -28,22 +28,34 @@ type InitialFoodFields = Omit<uploadFood, 'foodPartner' | 'image' | 'video' | 'v
 export const getFoodItems = async (
   userId?: string,
   limit?: number,
-  lastPartner?: string,
-  lastCreatedAt?: string
+  previousFoodId?: string,
+  lastCreatedAt?: string,
+  type?: 'standard' | 'reel'
 ) => {
-  return foodRepository.getFoodItemsWithUserState(
-    userId,
-    limit || 2,
-    lastPartner,
-    lastCreatedAt
-  );
+    return foodRepository.getAllFoodItems(
+      userId,
+      limit || 5,
+      previousFoodId,
+      lastCreatedAt,  
+      type || 'standard'
+    );
+
+
+// const [aggregation , standard] = await Promise.all([
+//   foodRepository.getFoodItemsWithUserState(userId, limit || 10, previousFoodId, lastCreatedAt, type),
+//   foodRepository.getAllFoodItems(userId, limit || 10, previousFoodId, lastCreatedAt,type),
+// ])
+
+// return standard;
+ 
+
 };
 
-// const addFoodItem = async (foodData: any, userId: string): Promise<any> => {
+// export const addFoodItem = async (foodData: any, userId: string): Promise<any> => {
 //   if (!userId) {
 //     throw new ValidationError('User ID is required to add a food item');
 //   }
-//   return foodRepository.addFoodItem(foodData, userId);
+//   return await foodRepository.addFoodItem({ ...foodData, foodPartner: userId });
 // };
 
 export const getFoodByPartnerId = async (partnerId: string): Promise<any[]> => {
