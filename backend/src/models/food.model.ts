@@ -24,6 +24,7 @@ import { IFood } from '../types';
     timestamps: true
 });
 
+foodSchema.index({ type: 1, uploadStatus: 1, createdAt: -1, _id: -1 });
 foodSchema.index({ foodPartner: 1, createdAt: -1 });
 foodSchema.index({ _id: 1, createdAt: -1 });
 foodSchema.index({ createdAt: -1 });
