@@ -102,8 +102,8 @@ const CheckoutPage = () => {
         locality: selectedAddress?.locality,
         address: selectedAddress?.address,
         city: selectedAddress?.city,
-        state: selectedAddress.state,
-        postalCode: selectedAddress.postalCode,
+        state: selectedAddress?.state,
+        postalCode: selectedAddress?.postalCode,
         country: 'India',
       },
       items: [
@@ -255,7 +255,7 @@ const CheckoutPage = () => {
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                   {food.description || 'Freshly prepared item from your selected partner.'}
                 </p>
-                <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">Partner: {food.partnerName || 'Restaurant Partner'}</p>
+                <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">Restaurant: {food.partnerName || 'Restaurant Partner'}</p>
                 <p className="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">{formatMoney(unitPrice)}</p>
               </div>
             </div>
