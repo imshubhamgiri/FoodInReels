@@ -18,9 +18,8 @@ const PartnerProfileUser = () => {
   useEffect(() => {
     const fetchPartnerProfile = async() => {
       try {
-        const response = await axios.get(`${API_BASE}/partners/foodPartners/${id}`);
+        const response = await axios.get(`${API_URL}partners/foodPartners/${id}`);
         setPartnerProfile(response.data.data);
-        console.log('Fetched partner profile:', response.data.data);
         setProfileLoading(false);
       } catch (error) {
         console.error('Error fetching partner profile:', error);
@@ -31,8 +30,8 @@ const PartnerProfileUser = () => {
 
     const fetchFoodItems = async () => {
       try {
-        const response = await axios.get(`${API_BASE}/foods/getfood/${id}`);
-        // const partnerFoods = response.data.fooditems?.filter(item => item.foodPartner._id === id) || [];
+        const response = await axios.get(`${API_URL}foods/partners/${id}`);
+        // const partnerFoods = response.data.fooditems?.filter(item => item.foodPartner._id === id) || []
         setFoodItems(response.data.foodItems || []);
       } catch (error) {
         console.error('Error fetching food items:', error);
