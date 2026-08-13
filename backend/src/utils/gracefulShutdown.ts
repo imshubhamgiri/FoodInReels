@@ -47,10 +47,9 @@ export function registerShutdownHandlers({
 
             // 2. Pause and Close all BullMQ Queues
             if (queues && queues.length > 0) {
-                console.log('[SHUTDOWN] Pausing and closing background queues...');
-                await Promise.all(queues.map(queue => queue.pause()));
-                await Promise.all(queues.map(queue => queue.close()));
-            }
+                console.log('[SHUTDOWN] Closing background queues...');
+                await Promise.all(queues.map(queue => queue.close())); // ✅ Only close the local connection
+              }
 
             // 3. Safely handle the HTTP Server closure
             if (server) {
