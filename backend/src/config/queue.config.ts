@@ -38,5 +38,17 @@ export async function run() {
     process.exit(1);
   }
 }
+
+export async function initializeQueueOnStartup() {
+  try {
+    // Unpause the queue if it was left paused by a previous crash or graceful shutdown
+    if (await videoUploadQueue.isPaused()) {
+      await videoUploadQueue.resume();
+      console.log('▶️ Video upload queue resumed successfully.');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize queue state:', error);
+  }
+}
 // run()
 
