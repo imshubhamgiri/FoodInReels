@@ -33,11 +33,13 @@ function UserProfile() {
   // Show login modal if user not authenticated
   if (!user) {
     return (
-      <LoginModal 
-        isOpen={true}
-        onClose={() => navigate('/')}
-        userType="user"
-      />
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-b from-emerald-50 via-white to-cyan-50 dark:from-stone-950 dark:via-slate-950 dark:to-black">
+        <LoginModal 
+          isOpen={true}
+          onClose={() => navigate('/')}
+          userType="user"
+        />
+      </div>
     );
   }
 
