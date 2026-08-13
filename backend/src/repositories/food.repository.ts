@@ -223,8 +223,8 @@ export const updateFoodItem = async (foodId: string, updateData: any) => {
   return await Food.findByIdAndUpdate(foodId, updateData, { new: true });
 };
 
-export const getFoodByPartnerId = async (foodPartnerId: string): Promise<IFood[]> => {
-  return await Food.find({ partnerId: foodPartnerId , uploadStatus: 'completed' }).lean<IFood[]>();
+export const getFoodByPartnerId = async (foodPartnerId: string  , limit: number): Promise<IFood[]> => {
+  return await Food.find({ foodPartner: foodPartnerId , uploadStatus: 'completed' }).limit(limit).lean<IFood[]>();
 };
 
 export const getAllFoodItems = async (

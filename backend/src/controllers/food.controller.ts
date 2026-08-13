@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import type { ApiResponse, ErrorResponse, AuthenticatedRequest, FoodItemWithStatus, AddFoodRequest, UploadResponse, File, FoodItemResponse, UpdateFoodRequest, PaginationResponse } from '../types';
+import type { ApiResponse, ErrorResponse, AuthenticatedRequest, FoodItemWithStatus, AddFoodRequest, UploadResponse, File, FoodItemResponse, UpdateFoodRequest, PaginationResponse , IFood } from '../types';
 import { v4 as uuid } from 'uuid';
 import * as foodService from '../services/food.service';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -120,13 +120,14 @@ export const getFoodItems = asyncHandler(
   ): Promise<void> => {
     const userId = req.user?.id;
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 2;
-    const { id, lastCreatedAt } = req.query;
+    const { id, lastCreatedAt , type} = req.query;
 
     const paginatedResponse = await foodService.getFoodItems(
       userId as string,
       limit,
       id as string,
-      lastCreatedAt as string
+      lastCreatedAt as string,
+      type as 'standard' | 'reel'
     );
 
     res.status(200).json({
@@ -143,7 +144,7 @@ export const getFoodItems = asyncHandler(
 );
 
 export const GetfoodById = asyncHandler(
-  async (req: Request, res: Response<ApiResponse<FoodItemResponse[]> | ErrorResponse>): Promise<void> => {
+  async (req: Request, res: Response<ApiResponse<IFood> | ErrorResponse>): Promise<void> => {
     const { id } = req.params as { id: string };
     
     // Service handles validation and throws errors if invalid
@@ -152,7 +153,7 @@ export const GetfoodById = asyncHandler(
     res.status(200).json({
       success: true,
       message: 'Food retrieved successfully',
-      foodItems: response as any,
+      foodItems: response,
     });
   }
 ) as any;

@@ -3,7 +3,7 @@ import * as foodRepository from '../repositories/food.repository';
 import { ValidationError, NotFoundError, ForbiddenError } from '../utils/error';
 import food from '../models/food.model';
 import storageService from '../service/storage.service';
-import type { File } from '../types';
+import type { File, IFood } from '../types';
 import { videoUploadQueue } from '../config/queue.config';
 import { v4 as uuid } from 'uuid';
 import fs from 'fs';
@@ -58,12 +58,12 @@ export const getFoodItems = async (
 //   return await foodRepository.addFoodItem({ ...foodData, foodPartner: userId });
 // };
 
-export const getFoodByPartnerId = async (partnerId: string): Promise<any[]> => {
+export const getFoodByPartnerId = async (partnerId: string): Promise<IFood[]> => {
   if (!partnerId.match(/^[0-9a-fA-F]{24}$/)) {
     throw new ValidationError('Invalid partner ID format');
   }
 
-  const foodItems = await food.find({ foodPartner: partnerId });
+  const foodItems = await foodRepository.getFoodByPartnerId(partnerId, 10); // Limit to 10 items for now
   return foodItems;
 };
 
