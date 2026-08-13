@@ -45,7 +45,7 @@ export default function usePartnerFoodItems(partnerId, autoFetchFood = true) {
     if (!partnerId) return;
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}foods`, {
+      const response = await axios.get(`${API_URL}foods/partners/${partnerId}`, {
         withCredentials: true
       });
       setFoodItems(response.data.data || response.data.foodItems || []);
