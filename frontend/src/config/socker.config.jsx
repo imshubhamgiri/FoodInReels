@@ -10,9 +10,8 @@ const SocketContext = createContext(undefined);
 export const SocketProvider = ({ children }) => {
  
   const { user} = useAppContext();
-  console.log('SocketProvider user:', user);
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || user.userType === 'user') return;
     // 1. Grab your logged-in Partner ID from localStorage or Auth cookies
     // Replace 'partnerId' with whatever key you use to persist auth
 
