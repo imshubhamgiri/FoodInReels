@@ -12,7 +12,7 @@ const LoginModal = ({ isOpen, onClose, userType = 'user' }) => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed h-full inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 

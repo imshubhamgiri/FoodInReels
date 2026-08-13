@@ -13,10 +13,8 @@ export default function OrdersTab() {
       try {
         setIsLoading(true);
         const response = await orderAPI.getMyOrders();
-        console.log('Fetched orders:', response);
         setOrders(response.data || response || []);
       } catch (err) {
-        console.error('Failed to fetch orders', err);
         setError('Failed to load orders. Please try again.');
       } finally {
         setIsLoading(false);

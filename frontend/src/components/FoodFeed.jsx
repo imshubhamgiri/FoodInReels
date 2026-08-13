@@ -10,7 +10,6 @@ const FoodFeed = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       const res = await foodAPI.getAllFoods(new URLSearchParams({ limit: 20 }));
-      console.log('Fetched products:', res.data);
       setProductsList(res.data);
     };
 
