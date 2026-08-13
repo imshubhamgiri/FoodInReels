@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { partnerAPI, authAPI } from '../services/api';
+import { useAppContext } from '../context/AppContext';
 
 function PartnerRegister() {
   const [error, setError] = useState('');
   const [emailError, setEmailError] = useState('');
   const navigate = useNavigate();
   const [loading, setloading] = useState(false)
+
+  const { partnerRegister }= useAppContext()
 
   const handleSubmit = async (e) => {
     setloading(true)
@@ -24,14 +27,9 @@ function PartnerRegister() {
     setError('');
     // setloading(false)
     try {
-       await partnerAPI.register({ restaurantName, name, email, phone, address, password });      
+       await partnerRegister({ restaurantName, name, email, phone, address, password });      
       // Check user type and navigate accordingly
-      const authCheck = await authAPI.checkAuth();
-      if (authCheck.userType === 'partner') {
-        navigate('/partner/profile');
-      } else {
-        navigate('/user/profile');
-      }
+      navigate('/partner/profile');
     } catch (error) {
       console.error('Registration error:', error);
       if (error.response?.data?.field === 'email') {
