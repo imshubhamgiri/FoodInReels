@@ -1,5 +1,5 @@
 import { createContext, useContext , useState, useEffect } from "react";
-import {userAPI ,partnerAPI, authAPI} from "../services/api";
+import { userAPI, partnerAPI, authAPI, profileAPI } from "../services/api";
 
 
 const AppContext = createContext();
@@ -8,6 +8,9 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
 
     const [user , setUser] = useState(null);
+    const [userProfile, setUserProfile] = useState(null);
+    const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
     const [isAuthenticated , setIsAuthenticated] = useState(false);
     const [isUserfetched , setIsUserFetched] = useState(false);
     const [isAuthLoading, setIsAuthLoading] = useState(true); // Added loading state for auth check
@@ -39,6 +42,8 @@ export const AppProvider = ({ children }) => {
             console.error('Logout error:', error);
         } finally {
             setUser(null);
+            setUserProfile(null);
+            setIsProfileLoaded(false);
             setIsAuthenticated(false);
         }
     }
@@ -64,9 +69,33 @@ export const AppProvider = ({ children }) => {
             console.error('Partner logout error:', error);
         } finally {
             setUser(null);
+            setUserProfile(null);
+            setIsProfileLoaded(false);
             setIsAuthenticated(false);
         }
     }
+
+    const fetchUserProfile = async (force = false) => {
+        if (!force && isProfileLoaded && userProfile) {
+            return userProfile;
+        }
+        setIsLoadingProfile(true);
+        try {
+            const response = await profileAPI.getMe();
+            const data = response?.data || response;
+            setUserProfile(data);
+            setIsProfileLoaded(true);
+            if (data && user) {
+                setUser((prev) => ({ ...prev, ...data }));
+            }
+            return data;
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            return null;
+        } finally {
+            setIsLoadingProfile(false);
+        }
+    };
 
     const fetchUserData = async () => {
         try {
@@ -84,6 +113,8 @@ export const AppProvider = ({ children }) => {
         } catch (error) {
           console.error('Error fetching user data:', error);
           setUser(null);
+          setUserProfile(null);
+          setIsProfileLoaded(false);
           setIsAuthenticated(false);
         } finally {
             setIsAuthLoading(false); // Auth check is complete
@@ -98,6 +129,11 @@ export const AppProvider = ({ children }) => {
     const value = {
             user,
             setUser,
+            userProfile,
+            setUserProfile,
+            isProfileLoaded,
+            isLoadingProfile,
+            fetchUserProfile,
             isAuthenticated,
             setIsAuthenticated,
             Food,
