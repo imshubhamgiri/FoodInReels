@@ -11,6 +11,9 @@ export const AppProvider = ({ children }) => {
     const [userProfile, setUserProfile] = useState(null);
     const [isProfileLoaded, setIsProfileLoaded] = useState(false);
     const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+    const [addresses, setAddresses] = useState([]);
+    const [isAddressesLoaded, setIsAddressesLoaded] = useState(false);
+    const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
     const [isAuthenticated , setIsAuthenticated] = useState(false);
     const [isUserfetched , setIsUserFetched] = useState(false);
     const [isAuthLoading, setIsAuthLoading] = useState(true); // Added loading state for auth check
@@ -44,6 +47,8 @@ export const AppProvider = ({ children }) => {
             setUser(null);
             setUserProfile(null);
             setIsProfileLoaded(false);
+            setAddresses([]);
+            setIsAddressesLoaded(false);
             setIsAuthenticated(false);
         }
     }
@@ -71,6 +76,8 @@ export const AppProvider = ({ children }) => {
             setUser(null);
             setUserProfile(null);
             setIsProfileLoaded(false);
+            setAddresses([]);
+            setIsAddressesLoaded(false);
             setIsAuthenticated(false);
         }
     }
@@ -97,6 +104,44 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const fetchAddresses = async (force = false) => {
+        if (!force && isAddressesLoaded && addresses.length > 0) {
+            return addresses;
+        }
+        setIsLoadingAddresses(true);
+        try {
+            const response = await profileAPI.getAddress();
+            const list = response?.data || [];
+            setAddresses(list);
+            setIsAddressesLoaded(true);
+            return list;
+        } catch (error) {
+            console.error('Error fetching user addresses:', error);
+            return [];
+        } finally {
+            setIsLoadingAddresses(false);
+        }
+    };
+
+    const addAddress = async (newAddress) => {
+        const response = await profileAPI.addAddress(newAddress);
+        const saved = response?.data || response;
+        setAddresses((prev) => [...prev, saved]);
+        return saved;
+    };
+
+    const updateAddress = async (id, updatedData) => {
+        const response = await profileAPI.updateAddress(id, updatedData);
+        const updated = response?.data || response;
+        setAddresses((prev) => prev.map((addr) => (addr._id === id ? updated : addr)));
+        return updated;
+    };
+
+    const deleteAddress = async (addressId) => {
+        await profileAPI.deleteAddress(addressId);
+        setAddresses((prev) => prev.filter((addr) => addr._id !== addressId));
+    };
+
     const fetchUserData = async () => {
         try {
           const response = await authAPI.checkAuth();
@@ -115,6 +160,8 @@ export const AppProvider = ({ children }) => {
           setUser(null);
           setUserProfile(null);
           setIsProfileLoaded(false);
+          setAddresses([]);
+          setIsAddressesLoaded(false);
           setIsAuthenticated(false);
         } finally {
             setIsAuthLoading(false); // Auth check is complete
@@ -134,6 +181,14 @@ export const AppProvider = ({ children }) => {
             isProfileLoaded,
             isLoadingProfile,
             fetchUserProfile,
+            addresses,
+            setAddresses,
+            isAddressesLoaded,
+            isLoadingAddresses,
+            fetchAddresses,
+            addAddress,
+            updateAddress,
+            deleteAddress,
             isAuthenticated,
             setIsAuthenticated,
             Food,
