@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Sparkles } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 function PartnerLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { partnerLogin, user, isAuthenticated, isAuthLoading } = useAppContext();
   const demoPartnerEmail = import.meta.env.VITE_TEST_PARTNER_EMAIL;
@@ -104,15 +105,26 @@ function PartnerLogin() {
               User Login
             </Link>
           </div>
-          <div className='initial-hidden animate-fadeInUp delay-200'>
-            <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-white">
+          <div className='initial-hidden animate-fadeInUp delay-200 text-center'>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 mb-3 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 shadow-xs">
+              <Sparkles size={13} className="text-orange-500" /> Restaurant Partner Portal
+            </span>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
               Partner Portal
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400 font-medium">
-              Sign in to your restaurant account
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
+              Sign in to manage your kitchen & orders
             </p>
           </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+
+          {error && (
+            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm font-medium animate-fadeInUp">
+              <AlertCircle size={18} className="shrink-0 mt-0.5" />
+              <span className="flex-1">{error}</span>
+            </div>
+          )}
+
+          <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4 initial-hidden animate-slideInLeft delay-300">
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-gray-800 dark:text-gray-200">
@@ -135,16 +147,26 @@ function PartnerLogin() {
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-800 dark:text-gray-200">
                   Password
                 </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  className="mt-1 block w-full px-4 py-2.5 border border-white/50 dark:border-gray-600/50 rounded-xl shadow-xs placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white font-medium transition-all"
-                  placeholder="••••••••"
-                />
-                {error && <p className="text-sm absolute text-red-600 dark:text-red-400 font-medium mt-1">{error}</p>}
+                <div className='relative mt-1'>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    required
+                    className="block w-full py-2.5 pr-11 pl-10 border border-white/50 dark:border-gray-600/50 rounded-xl shadow-xs placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white font-medium transition-all"
+                    placeholder="••••••••"
+                  />
+                  <Lock className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400' size={18} />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -167,18 +189,19 @@ function PartnerLogin() {
               </div>
             </div>
 
-            <div className='initial-hidden animate-fadeInDown mt-6 flex flex-col gap-2'>
+            <div className='initial-hidden animate-fadeInDown mt-6 flex flex-col gap-2.5'>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-sky-600/90 hover:bg-sky-700/90 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 active:scale-[0.99] backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all cursor-pointer"
                 disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
               <button
                 type="button"
                 onClick={handleDemoLogin}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-slate-600/90 hover:bg-slate-700/90 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-all"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-300/60 dark:border-slate-700 rounded-xl shadow-sm text-sm font-semibold text-slate-800 dark:text-slate-100 bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 active:scale-[0.99] backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all cursor-pointer"
                 disabled={loading}>
+                <Sparkles size={16} className="text-amber-500" />
                 {loading ? 'Signing in...' : 'Sign in as Test Partner'}
               </button>
             </div>
