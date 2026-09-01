@@ -19,6 +19,7 @@ import { resourceFromAttributes, defaultResource } from '@opentelemetry/resource
 import { ATTR_SERVICE_NAME, ATTR_DEPLOYMENT_ENVIRONMENT_NAME } from '@opentelemetry/semantic-conventions';
 
 const hasDatadogKey = Boolean(process.env.DD_API_KEY);
+const useDatadogTelemetry = hasDatadogKey && process.env.NODE_ENV === 'production';
 console.log(`[Tracer Debug] DD_API_KEY detected: ${hasDatadogKey}`);
 console.log(`[Tracer Debug] Environment: ${process.env.NODE_ENV || 'production'}`);
 
@@ -32,15 +33,15 @@ const customResource = defaultResource().merge(
 const sdk = new NodeSDK({
   resource: customResource,
 
-  traceExporter: hasDatadogKey
+  traceExporter: useDatadogTelemetry
     ? new OTLPTraceExporter({
         url: 'https://otlp.us5.datadoghq.com/v1/traces',
         headers: { 'dd-api-key': process.env.DD_API_KEY as string },
       })
     : new ConsoleSpanExporter(),
 
-  // --- Added DELTA temporality preference for Datadog ---
-  metricReader: hasDatadogKey
+  // Only export metrics to Datadog in production; local dev uses console logs only.
+  metricReader: useDatadogTelemetry
     ? new PeriodicExportingMetricReader({
         exporter: new OTLPMetricExporter({
           url: 'https://otlp.us5.datadoghq.com/v1/metrics',
@@ -50,8 +51,7 @@ const sdk = new NodeSDK({
       })
     : undefined,
 
-  // --- Fixed syntax using the correct configuration options object ---
-  logRecordProcessor: hasDatadogKey
+  logRecordProcessor: useDatadogTelemetry
     ? new SimpleLogRecordProcessor({
         exporter: new OTLPLogExporter({
           url: 'https://otlp.us5.datadoghq.com/v1/logs',

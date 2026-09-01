@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import './tracer';
+// import './tracer';
 import app from './src/app';
 import { connectDB } from './src/db/db';
 import redis from './src/db/redis';
@@ -27,36 +27,9 @@ const startServer = (): void => {
   const server = httpServer.listen(PORT, HOST, () => {
     console.log(`[BOOT] pid=${process.pid} runtime=${runtime} env=${process.env.NODE_ENV || 'development'} url=http://${HOST}:${PORT}`);
   });
-  // run();
+
   initializeQueueOnStartup();
-  // jobQueue.resume().then(() => {
-  //   console.log('▶️ Video upload queue globally unpaused and ready.');
-  // });
-
-  // async function GracefulShutdown(Term:string){
-  //   console.log(`$[SHUTDOWN] Received ${Term}, shutting down gracefully...`);
-  //   await mongoose.connection.close()
-  //   await redis.quit();
-  //   server.close( async() => {
-  //     try {
-  //       console.log('[SHUTDOWN] Server closed.');
-  //       process.exit(0);  
-  //     } catch (error) {
-  //       console.error('Error during shutdown:', error);
-  //       process.exit(1);
-  //     }
-  //   });
-  // }
-
-  // process.on('SIGTERM', async () => {
-  //   await GracefulShutdown('SIGTERM');
-
-  // });
-
-  // process.on('SIGINT', async () => {
-  //   await GracefulShutdown('SIGINT');
-  // });
-
+  
  registerShutdownHandlers({
     server, // Your HTTP server instance,
     socketServer, // Your socket instance
