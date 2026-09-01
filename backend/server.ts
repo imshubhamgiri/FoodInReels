@@ -1,5 +1,5 @@
 import 'dotenv/config';
-// import './tracer';
+import './tracer';
 import app from './src/app';
 import { connectDB } from './src/db/db';
 import redis from './src/db/redis';
@@ -27,9 +27,9 @@ const startServer = (): void => {
   const server = httpServer.listen(PORT, HOST, () => {
     console.log(`[BOOT] pid=${process.pid} runtime=${runtime} env=${process.env.NODE_ENV || 'development'} url=http://${HOST}:${PORT}`);
   });
-
+  // run();
   initializeQueueOnStartup();
-  
+
  registerShutdownHandlers({
     server, // Your HTTP server instance,
     socketServer, // Your socket instance

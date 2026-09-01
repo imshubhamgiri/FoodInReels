@@ -24,3 +24,4 @@ USECALLBACK_REAL_FLOW.md
 USECALLBACK_SIMPLE.md
 backend/setup-replica-set.ps1
 SAFE_RELEASE_CHECKLIST.md
+backend/src/scripts/
