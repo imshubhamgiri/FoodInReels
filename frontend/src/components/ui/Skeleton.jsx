@@ -1,9 +1,13 @@
 import React from 'react';
 
-export default function Skeleton({ className = '', height = 'h-6', width = 'w-full' }) {
+export function Skeleton({ className = '', height = 'h-6', width = 'w-full', ...props }) {
   return (
     <div
-      className={`${height} ${width} ${className} bg-gray-300 dark:bg-gray-700 rounded animate-pulse`}
+      className={`animate-pulse rounded-xl bg-white/[0.06] backdrop-blur-sm ${height} ${width} ${className}`}
+      {...props}
     />
   );
 }
+
+export default Skeleton;
+

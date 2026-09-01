@@ -8,6 +8,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .idea/
+food.routeFactory.ts
+uploadNotification.jsx
 *.log
 IMAGEKIT_ERROR_ANALYSIS.md
 MONGODB_REPLICA_SET_SETUP.md
@@ -22,3 +24,4 @@ USECALLBACK_REAL_FLOW.md
 USECALLBACK_SIMPLE.md
 backend/setup-replica-set.ps1
 SAFE_RELEASE_CHECKLIST.md
+backend/src/scripts/
