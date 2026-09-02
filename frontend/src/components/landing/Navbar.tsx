@@ -21,6 +21,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { useTheme } from '../../context/ThemeContext';
 import { useAppContext } from '../../context/AppContext';
+import { useCart } from '../../context/CartContext';
 import { cn } from '../../lib/utils';
 
 interface NavbarProps {
@@ -46,7 +47,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onCityChange
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const { user, isAuthenticated, Cart = [] } = useAppContext();
+  const { user, isAuthenticated } = useAppContext();
+  const { itemCount: cartItemCount, openCart } = useCart();
   const navigate = useNavigate();
 
   const [currentCity, setCurrentCity] = useState(selectedCity);
@@ -108,8 +110,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const filteredCities = POPULAR_CITIES.filter(c => 
     c.toLowerCase().includes(citySearchQuery.toLowerCase())
   );
-
-  const cartItemCount = Array.isArray(Cart) ? Cart.length : 0;
 
   return (
     <header 
@@ -288,9 +288,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Link>
 
             {/* Cart Button */}
-            <Link
-              to="/checkout"
-              className="relative p-2 sm:p-2.5 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 hover:border-white/20 text-slate-200 hover:text-white transition-all cursor-pointer shrink-0"
+            <button
+              onClick={openCart}
+              className="relative p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-[#18181F] hover:bg-slate-200 dark:hover:bg-[#22222D] border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shrink-0"
               aria-label="View shopping cart"
             >
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -298,12 +298,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1.5 -right-1.5 bg-[#FF462D] text-white text-[9px] sm:text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border-2 border-[#0D0D11] shadow-md shadow-[#FF462D]/40"
+                  className="absolute -top-1.5 -right-1.5 bg-[#FF462D] text-white text-[9px] sm:text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-[#0D0D11] shadow-md shadow-[#FF462D]/40"
                 >
                   {cartItemCount}
                 </motion.span>
               )}
-            </Link>
+            </button>
 
             {/* Theme Toggle */}
             <button
