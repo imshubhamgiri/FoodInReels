@@ -1,5 +1,5 @@
 import React, { useState, useEffect , useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config/api.js'
 
@@ -7,6 +7,7 @@ const API_BASE = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
 
 const PartnerProfileUser = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [partnerProfile, setPartnerProfile] = useState(null);
   const [foodItems, setFoodItems] = useState([]);
   const [error, setError] = useState('');
@@ -233,7 +234,26 @@ const PartnerProfileUser = () => {
                             <p className="text-gray-200 dark:text-gray-300 text-xs mb-3 line-clamp-2">
                               {item.description}
                             </p>
-                            <button className="w-full py-2 bg-linear-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 dark:from-red-500 dark:to-orange-500 dark:hover:from-red-600 dark:hover:to-orange-600 text-white rounded-full text-sm font-bold transition-all shadow-lg">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate('/checkout', {
+                                  state: {
+                                    food: {
+                                      _id: item._id,
+                                      name: item.name,
+                                      description: item.description,
+                                      price: item.price,
+                                      image: item.image,
+                                      video: item.video,
+                                      partnerName: partnerProfile?.restaurantName || 'Restaurant',
+                                      partnerId: id,
+                                    }
+                                  }
+                                });
+                              }}
+                              className="w-full py-2 bg-gradient-to-r from-[#FF462D] to-[#FF6B4A] hover:from-[#E03E26] hover:to-[#FF462D] text-white rounded-full text-sm font-bold transition-all shadow-lg cursor-pointer"
+                            >
                               Order Now
                             </button>
                           </div>

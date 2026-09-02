@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { useAppContext } from '../../context/AppContext';
+import { useCart } from '../../context/CartContext';
 import { cn } from '../../lib/utils';
 
 export interface FoodProduct {
@@ -40,11 +41,11 @@ interface FoodCardProps {
 }
 
 export const FoodCard: React.FC<FoodCardProps> = ({ product, onAddToCart }) => {
-  const { Cart, setCart } = useAppContext() || {};
+  const { addToCart, updateQuantity, getItemQuantity, removeFromCart } = useCart();
   const [isLiked, setIsLiked] = useState(false);
-  const [quantity, setQuantity] = useState(0);
 
-  const id = product._id || product.id || product.name;
+  const id = String(product._id || product.id || product.name);
+  const currentQuantity = getItemQuantity(id);
   const name = product.name || 'Gourmet Specialty';
   const restaurant = product.restaurant || product.restaurantName || product.foodPartner?.restaurantName || 'Artisan Kitchen';
   const price = Number(product.price || 199);
@@ -57,16 +58,22 @@ export const FoodCard: React.FC<FoodCardProps> = ({ product, onAddToCart }) => {
 
   const handleIncrement = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const newQty = quantity + 1;
-    setQuantity(newQty);
-    onAddToCart?.(product, newQty);
+    if (currentQuantity === 0) {
+      addToCart(product, 1);
+    } else {
+      updateQuantity(id, currentQuantity + 1);
+    }
+    onAddToCart?.(product, currentQuantity + 1);
   };
 
   const handleDecrement = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const newQty = Math.max(0, quantity - 1);
-    setQuantity(newQty);
-    onAddToCart?.(product, newQty);
+    if (currentQuantity <= 1) {
+      removeFromCart(id);
+    } else {
+      updateQuantity(id, currentQuantity - 1);
+    }
+    onAddToCart?.(product, Math.max(0, currentQuantity - 1));
   };
 
   const handleToggleLike = (e: React.MouseEvent) => {
@@ -158,7 +165,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({ product, onAddToCart }) => {
 
           {/* Interactive ADD / +/- Quantity Button */}
           <div className="shrink-0">
-            {quantity === 0 ? (
+            {currentQuantity === 0 ? (
               <button
                 onClick={handleIncrement}
                 className="flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-[#FF462D]/15 to-[#FF6B4A]/15 hover:from-[#FF462D] hover:to-[#FF6B4A] text-[#FF6B4A] hover:text-white border border-[#FF462D]/40 hover:border-transparent text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:shadow-[#FF462D]/30 active:scale-95"
@@ -177,7 +184,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({ product, onAddToCart }) => {
                 >
                   <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
                 </button>
-                <span className="font-bold text-[11px] sm:text-xs min-w-3 sm:min-w-4 text-center">{quantity}</span>
+                <span className="font-bold text-[11px] sm:text-xs min-w-3 sm:min-w-4 text-center">{currentQuantity}</span>
                 <button
                   onClick={handleIncrement}
                   className="w-4 h-4 sm:w-5 sm:h-5 rounded-md bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors cursor-pointer"

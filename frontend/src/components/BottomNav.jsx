@@ -3,15 +3,17 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, Film, Utensils, User, ShoppingBag } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { useCart } from '../context/CartContext';
 
 const BottomNav = () => {
-  const { user, Cart = [] } = useAppContext() || {};
+  const { user } = useAppContext() || {};
+  const { itemCount = 0 } = useCart() || {};
   const location = useLocation();
 
   const navitems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/reel', label: 'Reels', icon: Film, badge: 'Live' },
-    { path: '/checkout', label: 'Cart', icon: ShoppingBag, count: Array.isArray(Cart) ? Cart.length : 0 },
+    { path: '/cart', label: 'Cart', icon: ShoppingBag, count: itemCount },
     { 
       path: user?.userType === 'partner' ? '/partner/profile' : '/user/profile', 
       label: 'Account', 

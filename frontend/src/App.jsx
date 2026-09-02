@@ -14,27 +14,31 @@ import Addfood from './pages/Addfood';
 import LandingPage from './pages/LandingPgae';
 import NotFound from './pages/NotFound';
 import CheckoutPage from './pages/CheckoutPage';
+import CartPage from './pages/CartPage';
+import CartDrawer from './components/cart/CartDrawer';
 import BottomNav from './components/BottomNav';
+import { CartProvider } from './context/CartContext';
 
 function App() {
   const location = useLocation();
-  const hideBottomNavPaths = ['/user/login', '/user/register', '/partner/login', '/partner/register', '/checkout'];
+  const hideBottomNavPaths = ['/user/login', '/user/register', '/partner/login', '/partner/register', '/checkout', '/cart'];
   const showNav = !hideBottomNavPaths.includes(location.pathname);
 
   return (
-    <>
+    <CartProvider>
       <ToastContainer
         position="top-center"
-        autoClose={5000}
+        autoClose={4000}
         hideProgressBar={false}
-        newestOnTop={true}      // 🔄 Forces new toasts to claim absolute visual priority
+        newestOnTop={true}
         closeOnClick={false}
         pauseOnFocusLoss={false}
         draggable
         pauseOnHover
-        theme="light"
-        limit={3}               // 💡 Prevents layout engine clipping by limiting concurrent toasts
+        theme="colored"
+        limit={3}
       />
+      <CartDrawer />
       <Routes>
         <Route path="/reel" element={<Reel />} />
         <Route path="/user/login" element={<UserLogin />} />
@@ -45,13 +49,14 @@ function App() {
         <Route path="/partner/profile" element={<PartnerProfile />} />
         <Route path="/profile/foodpartner/:id" element={<PartnerProfileUser />} />
         <Route path='/partner/addfood' element={<Addfood />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/" element={<LandingPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {showNav && <BottomNav />}
-    </>
-  )
+    </CartProvider>
+  );
 }
 
 export default App;

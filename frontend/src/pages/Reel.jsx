@@ -5,10 +5,13 @@ import { useNavigate } from 'react-router-dom'
 import VideoCard from '../components/ui/VideoCard';
 import { foodAPI, useractions } from '../services/api'
 import { useAppContext } from '../context/AppContext'
+import { useCart } from '../context/CartContext'
+import { ShoppingCart } from 'lucide-react'
 
 const Reel = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isAuthLoading } = useAppContext();
+  const { addToCart } = useCart();
   const [videos, setVideos] = useState([]);
   const videoFeedRef = useRef(null);
   const videoRefs = useRef([]);
@@ -393,13 +396,33 @@ const Reel = () => {
                       {video.description}
                     </p>
 
-                    <div className="flex items-center gap-4">
-                      <span className="text-green-400 text-lg font-bold">
+                    <div className="flex items-center gap-3">
+                      <span className="text-emerald-400 text-lg font-extrabold">
                         ₹{video.price}
                       </span>
                       <button
+                        onClick={() => {
+                          addToCart({
+                            _id: video._id,
+                            name: video.name,
+                            description: video.description,
+                            price: video.price,
+                            image: video.image,
+                            foodPartner: {
+                              _id: video.foodPartner?._id,
+                              restaurantName: video.foodPartner?.restaurantName || video.foodPartner?.name
+                            }
+                          }, 1);
+                        }}
+                        className="px-3.5 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <ShoppingCart className="w-3.5 h-3.5" />
+                        <span>+ Cart</span>
+                      </button>
+                      <button
                         onClick={() => handleOrderNow(video)}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-semibold transition-colors cursor-pointer">
+                        className="px-4 py-2 bg-[#FF462D] hover:bg-[#E03E26] text-white rounded-full text-xs sm:text-sm font-bold shadow-md shadow-[#FF462D]/40 transition-all cursor-pointer"
+                      >
                         Order Now
                       </button>
                     </div>
