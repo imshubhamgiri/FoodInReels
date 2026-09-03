@@ -9,10 +9,10 @@ import SavedFoodsTab from '../components/user-profile/SavedFoodsTab';
 import OrdersTab from '../components/user-profile/OrdersTab';
 import LoginModal from '../components/LoginModal';
 
-function UserProfile() {
+const UserProfile: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthLoading, showLoginModal, setShowLoginModal } = useAppContext();
-  const [activeTab, setActiveTab] = useState('profile');
+  const { user, isAuthLoading, setShowLoginModal } = useAppContext();
+  const [activeTab, setActiveTab] = useState<string>('profile');
 
   useEffect(() => {
     // Show login modal if auth loading is complete and no user was found
@@ -33,13 +33,11 @@ function UserProfile() {
   // Show login modal if user not authenticated
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-b from-emerald-50 via-white to-cyan-50 dark:from-stone-950 dark:via-slate-950 dark:to-black">
-        <LoginModal 
-          isOpen={true}
-          onClose={() => navigate('/')}
-          userType="user"
-        />
-      </div>
+      <LoginModal 
+        isOpen={true}
+        onClose={() => navigate('/')}
+        userType="user"
+      />
     );
   }
 
@@ -98,7 +96,7 @@ function UserProfile() {
       </div>
     </div>
   );
-}
+};
 
 export default UserProfile;
 

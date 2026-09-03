@@ -59,6 +59,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isScrolled, setIsScrolled] = useState(false);
 
   const cityDropdownRef = useRef<HTMLDivElement>(null);
+const desktopCityDropdownRef = useRef<HTMLDivElement>(null);
+const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Keyboard shortcut listener for Ctrl+K / Cmd+K
@@ -85,7 +87,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Close city dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedInsideDesktop = desktopCityDropdownRef.current?.contains(target);
+      const clickedInsideMobile = mobileCityDropdownRef.current?.contains(target);
+      if (!clickedInsideDesktop && !clickedInsideMobile) {
         setIsCityOpen(false);
       }
     };
@@ -146,7 +151,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Link>
 
             {/* Desktop-only Location Selector (shown on md+) */}
-            <div className="relative hidden md:block" ref={cityDropdownRef}>
+            <div className="relative hidden md:block" ref={desktopCityDropdownRef}>
               <button
                 onClick={() => setIsCityOpen(!isCityOpen)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 hover:border-white/20 transition-all duration-200 text-xs lg:text-sm text-slate-200 cursor-pointer select-none"
@@ -350,7 +355,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="mt-2.5 flex items-center gap-2 md:hidden">
           
           {/* Mobile Location Selector Chip */}
-          <div className="relative shrink-0" ref={cityDropdownRef}>
+          <div className="relative shrink-0" ref={mobileCityDropdownRef}>
             <button
               onClick={() => setIsCityOpen(!isCityOpen)}
               className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 hover:border-white/20 transition-all text-xs text-slate-200 cursor-pointer select-none shrink-0"

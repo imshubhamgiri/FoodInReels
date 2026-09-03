@@ -1,77 +1,107 @@
 import React from 'react';
-import { X, LogIn } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-const LoginModal = ({ isOpen, onClose, userType = 'user' }) => {
+const LoginModal = ({
+  isOpen = true,
+  onClose,
+  title = "Sign in to Continue",
+  description = "Log in to view reels, like your favorite dishes, and place orders",
+  _userType
+}) => {
+  const navigate = useNavigate();
+
   if (!isOpen) return null;
 
-  const loginPath = userType === 'partner' ? '/partner/login' : '/user/login';
-  const registerPath = userType === 'partner' ? '/partner/register' : '/user/register';
+  const handleNavigate = (path) => {
+    if (onClose) onClose();
+    navigate(path);
+  };
 
   return (
-    <>
-      {/* Backdrop */}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={() => {
+        if (onClose) onClose();
+      }}
+    >
       <div
-        className="fixed h-full inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+        className="relative max-w-sm w-full mx-4 rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl p-8 shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Glassmorphism background elements */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-emerald-100/50 dark:border-slate-700/50 overflow-hidden animate-in fade-in scale-95 transition-all"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="relative bg-linear-to-r from-emerald-500 to-cyan-500 dark:from-black dark:to-black/10 p-6 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <LogIn className="w-6 h-6 text-white" />
-              <h2 className="text-xl font-bold text-white">Login Required</h2>
+        {/* Close Button if onClose is provided */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors z-20 cursor-pointer"
+            aria-label="Close"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
+        <div className="relative z-10 text-center space-y-6">
+          {/* Icon */}
+          <div className="flex justify-center">
+            <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-white">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
             </div>
+          </div>
+
+          {/* Heading */}
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              {title}
+            </h2>
+            <p className="text-gray-200 text-sm">
+              {description}
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div className="space-y-3 pt-2">
             <button
-              onClick={onClose}
-              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+              onClick={() => handleNavigate('/user/login')}
+              className="w-full px-4 py-3 rounded-full bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
             >
-              <X className="w-5 h-5 text-white" />
+              User Login
+            </button>
+
+            <button
+              onClick={() => handleNavigate('/partner/login')}
+              className="w-full px-4 py-3 rounded-full border-2 border-white/30 hover:border-white/50 text-white font-semibold transition-all duration-200 hover:bg-white/10 cursor-pointer"
+            >
+              Partner Login
             </button>
           </div>
 
-          {/* Content */}
-          <div className="p-6">
-            <p className="text-slate-600 dark:text-slate-300 mb-6">
-              You need to be logged in to access your profile. Please login or create an account to continue.
-            </p>
-
-            <div className="space-y-3">
-              {/* Login Button */}
-              <Link
-                to={loginPath}
-                onClick={onClose}
-                className="w-full block px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors text-center"
-              >
-                Login to your Account
-              </Link>
-
-              {/* Register Button */}
-              <Link
-                to={registerPath}
-                onClick={onClose}
-                className="w-full block px-4 py-3 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800/50 font-semibold rounded-lg transition-colors text-center"
-              >
-                Create New Account
-              </Link>
-            </div>
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/20"></div>
+            <span className="text-gray-300 text-xs">or</span>
+            <div className="flex-1 h-px bg-white/20"></div>
           </div>
 
-          {/* Footer */}
-          <div className="bg-slate-50 dark:bg-slate-800/30 px-6 py-3 border-t border-slate-200 dark:border-slate-700">
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-              We'll protect your privacy. See our Privacy Policy.
-            </p>
-          </div>
+          {/* Sign Up Link */}
+          <p className="text-gray-200 text-sm">
+            Don't have an account?{' '}
+            <button
+              onClick={() => handleNavigate('/user/register')}
+              className="text-blue-400 hover:text-blue-300 font-semibold underline cursor-pointer"
+            >
+              Sign up
+            </button>
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

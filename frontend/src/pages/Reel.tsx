@@ -1,27 +1,47 @@
-import React from 'react'
-import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
+import React from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import VideoCard from '../components/ui/VideoCard';
-import { foodAPI, useractions } from '../services/api'
-import { useAppContext } from '../context/AppContext'
-import { useCart } from '../context/CartContext'
-import { ShoppingCart } from 'lucide-react'
+import { foodAPI, useractions } from '../services/api';
+import { useAppContext } from '../context/AppContext';
+import { useCart } from '../context/CartContext';
+import { ShoppingCart } from 'lucide-react';
+import LoginModal from '../components/LoginModal';
 
-const Reel = () => {
+interface FoodPartner {
+  _id?: string;
+  name?: string;
+  restaurantName?: string;
+}
+
+interface VideoItem {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  image?: string;
+  video: string;
+  isLiked?: boolean;
+  likeCount: number;
+  isSaved?: boolean;
+  saveCount: number;
+  foodPartner?: FoodPartner;
+}
+
+const Reel: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isAuthLoading } = useAppContext();
   const { addToCart } = useCart();
-  const [videos, setVideos] = useState([]);
-  const videoFeedRef = useRef(null);
-  const videoRefs = useRef([]);
-  const [currentVideoId, setCurrentVideoId] = useState(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [emptyStateMessage, setEmptyStateMessage] = useState('Loading reels...');
-  const cursor = useRef('default');
-  const hasMore = useRef(true);
-  const isLoading = useRef(false);
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const videoFeedRef = useRef<HTMLDivElement | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+  const [emptyStateMessage, setEmptyStateMessage] = useState<string>('Loading reels...');
+  const cursor = useRef<any>('default');
+  const hasMore = useRef<boolean>(true);
+  const isLoading = useRef<boolean>(false);
 
   const getVideos = async (isInitialRequest = false) => {
     if (!hasMore.current || isLoading.current) return;
@@ -33,17 +53,17 @@ const Reel = () => {
     }
 
     const param = new URLSearchParams({
-      limit: 5,
+      limit: '5',
       ...(cursor.current?.id && { id: cursor.current.id }),
       ...(cursor.current?.lastCreatedAt && { lastCreatedAt: cursor.current.lastCreatedAt }),
       type: 'reel',
     });
 
-    await foodAPI.getAllFoods(param).then((res) => {
+    await foodAPI.getAllFoods(param).then((res: any) => {
       setVideos((prev) => {
         // Prevent duplicate videos if overlapping calls happen
         const existingIds = new Set(prev.map(v => v._id));
-        const newVideos = (res.data || []).filter(v => !existingIds.has(v._id)); // Filter out duplicates
+        const newVideos = (res.data || []).filter((v: VideoItem) => !existingIds.has(v._id)); // Filter out duplicates
         return [...prev, ...newVideos];
       });
       hasMore.current = res.pagination.hasMore;
@@ -57,7 +77,7 @@ const Reel = () => {
       if (isInitialRequest && fooditems.length === 0) {
         setEmptyStateMessage('No reels available right now. Please check back in a few minutes.');
       }
-    }).catch((err) => {
+    }).catch((err: any) => {
       console.error("Error fetching videos:", err);
       if (!hadVideos) {
         setEmptyStateMessage('We could not load reels right now. Please try again.');
@@ -68,15 +88,15 @@ const Reel = () => {
         setIsInitialLoading(false);
       }
     });
-  }
+  };
 
   useEffect(() => {
     if (!isAuthLoading && isAuthenticated) {
       getVideos(true);
     }
-  }, [isAuthLoading, isAuthenticated])
+  }, [isAuthLoading, isAuthenticated]);
 
-  const handleLike = async (e, foodId) => {
+  const handleLike = async (e: React.MouseEvent, foodId: string) => {
     e.stopPropagation(); // Prevent video play/pause toggle
     setVideos(prev => prev.map(v => {
       if (v._id === foodId) {
@@ -93,7 +113,6 @@ const Reel = () => {
     try {
       await useractions.likeFood(foodId);
     } catch (error) {
-
       console.error("Like failed:", error);
       // Revert on error
       setVideos(prev => prev.map(v => {
@@ -110,7 +129,7 @@ const Reel = () => {
     }
   };
 
-  const handleSave = async (e, foodId) => {
+  const handleSave = async (e: React.MouseEvent, foodId: string) => {
     e.stopPropagation();
     // Optimistic UI Update
     setVideos(prev => prev.map(v => {
@@ -151,18 +170,19 @@ const Reel = () => {
       root: videoFeedRef.current,
       threshold: [0, 0.5, 0.7, 1.0],
       rootMargin: '-10% 0px -10% 0px'
-    }
+    };
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const video = entry.target;
-
+          const video = entry.target as HTMLVideoElement;
 
           if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
             // Video is 70% visible - play it
             video.play().catch(e => console.log('Autoplay blocked:', e));
-            setCurrentVideoId(video.dataset.id);
+            if (video.dataset.id) {
+              setCurrentVideoId(video.dataset.id);
+            }
           } else {
             if (!video.paused) {
               video.pause();
@@ -171,7 +191,6 @@ const Reel = () => {
         });
       }, options);
 
-
     videoRefs.current.forEach((video) => {
       if (video) {
         observer.observe(video);
@@ -179,6 +198,7 @@ const Reel = () => {
     });
 
     const handleScroll = () => {
+      if (!videoFeedRef.current) return;
       const { scrollTop, scrollHeight, clientHeight } = videoFeedRef.current;
       if (scrollTop + clientHeight >= scrollHeight - 200) {
         getVideos();
@@ -204,7 +224,7 @@ const Reel = () => {
     };
   }, [videos]);
 
-  const handleOrderNow = (video) => {
+  const handleOrderNow = (video: VideoItem) => {
     navigate('/checkout', {
       state: {
         food: {
@@ -236,71 +256,9 @@ const Reel = () => {
           </div>
         ) : null}
 
-        {/* Authentication Required Card */}
+        {/* Unified Authentication Required Popup */}
         {!isAuthLoading && !isAuthenticated ? (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <div className="relative max-w-sm w-full mx-4 rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl p-8 shadow-2xl overflow-hidden">
-              {/* Glassmorphism background elements */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl -ml-20 -mb-20"></div>
-              
-              <div className="relative z-10 text-center space-y-6">
-                {/* Icon */}
-                <div className="flex justify-center">
-                  <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-white">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Heading */}
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    Sign in to Continue
-                  </h2>
-                  <p className="text-gray-200 text-sm">
-                    Log in to view reels, like your favorite dishes, and place orders
-                  </p>
-                </div>
-
-                {/* Buttons */}
-                <div className="space-y-3 pt-2">
-                  <button
-                    onClick={() => navigate('/user/login')}
-                    className="w-full px-4 py-3 rounded-full bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    User Login
-                  </button>
-                  
-                  <button
-                    onClick={() => navigate('/partner/login')}
-                    className="w-full px-4 py-3 rounded-full border-2 border-white/30 hover:border-white/50 text-white font-semibold transition-all duration-200 hover:bg-white/10"
-                  >
-                    Partner Login
-                  </button>
-                </div>
-
-                {/* Divider */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-white/20"></div>
-                  <span className="text-gray-300 text-xs">or</span>
-                  <div className="flex-1 h-px bg-white/20"></div>
-                </div>
-
-                {/* Sign Up Link */}
-                <p className="text-gray-200 text-sm">
-                  Don't have an account?{' '}
-                  <button
-                    onClick={() => navigate('/user/register')}
-                    className="text-blue-400 hover:text-blue-300 font-semibold underline"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              </div>
-            </div>
-          </div>
+          <LoginModal isOpen={true} />
         ) : null}
 
         {!isInitialLoading && videos.length === 0 ? (
@@ -434,7 +392,8 @@ const Reel = () => {
         ) : null}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Reel
+export default Reel;
+

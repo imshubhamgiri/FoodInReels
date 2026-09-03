@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ProfileDropdown from '../components/ProfileDropdown';
 import { useAppContext } from '../context/AppContext';
 import PartnerSidebar from '../components/partner/PartnerSidebar';
@@ -8,10 +8,10 @@ import PartnerMenu from '../components/partner/PartnerMenu';
 import LoginModal from '../components/LoginModal';
 import usePartnerFoodItems from '../hooks/usePartnerFoodItems';
 
-function PartnerProfile() {
+const PartnerProfile: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthLoading, partnerLogout, showLoginModal, setShowLoginModal } = useAppContext();
-  const [activeTab, setActiveTab] = useState('profile');
+  const { user, isAuthLoading, partnerLogout, setShowLoginModal } = useAppContext();
+  const [activeTab, setActiveTab] = useState<string>('profile');
   // Use our new hook for food operations
 
   useEffect(() => {
@@ -63,7 +63,7 @@ function PartnerProfile() {
       <div className="bg-white dark:bg-[#000000] shadow-sm border-b border-blue-100 dark:border-[#430A5D]/50 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <button onClick={() => navigate(-1)} className="inline-flex items-center text-sm font-semibold text-slate-600 dark:text-blue-100 hover:text-blue-600 dark:hover:text-[#430A5D] transition-colors">
+            <button onClick={() => navigate(-1)} className="inline-flex items-center text-sm font-semibold text-slate-600 dark:text-blue-100 hover:text-blue-600 dark:hover:text-[#430A5D] transition-colors cursor-pointer">
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
@@ -131,6 +131,7 @@ function PartnerProfile() {
       </div>
     </div>
   );
-}
+};
 
 export default PartnerProfile;
+
