@@ -1,11 +1,16 @@
 import React, { useState } from 'react'
-import {  Flip, toast } from 'react-toastify';
+import { Flip, toast } from 'react-toastify';
 import { foodAPI } from '../services/api'
 import AddFoodHeader from '../components/partner/AddFood/AddFoodHeader';
 import MediaUpload from '../components/partner/AddFood/MediaUpload';
 import FoodDetailsForm from '../components/partner/AddFood/FoodDetailsForm';
+import { useAppContext } from '../context/AppContext';
+import { UploadAccessFallback } from '../components/partner/UploadAccessFallback';
 
 const Addfood = () => {
+  const { user, isAuthenticated, isAuthLoading } = useAppContext() || {};
+  const isPartner = isAuthenticated && user?.userType === 'partner';
+
   const [mediaPreview, setMediaPreview] = useState(null)
   const [loading, setloading] = useState(false)
   const [formData, setFormData] = useState({
@@ -15,6 +20,22 @@ const Addfood = () => {
     type: 'standard',
     media: null
   })
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0D0D11] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#EA580C] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!isPartner) {
+    return (
+      <div className="min-h-screen py-12 px-4 bg-gray-50 dark:bg-[#0D0D11] flex items-center justify-center">
+        <UploadAccessFallback />
+      </div>
+    );
+  }
 
   // console.log('current partner ', user?.id);
 

@@ -1,6 +1,5 @@
-import * as React from 'react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Film, 
   Mail, 
@@ -14,10 +13,25 @@ import {
   Heart
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { UploadFoodReelModal } from '../partner/UploadFoodReelModal';
+import { useAppContext } from '../../context/AppContext';
 
 export const Footer: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAppContext() || {};
+  const isPartner = isAuthenticated && user?.userType === 'partner';
+
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  const handleUploadClick = () => {
+    if (isPartner) {
+      navigate('/partner/addfood');
+    } else {
+      setIsUploadModalOpen(true);
+    }
+  };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +137,16 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-xs">
               <li><Link to="/partner/register" className="text-[#FFB703] font-medium hover:underline">Partner With Us</Link></li>
               <li><Link to="/partner/login" className="hover:text-white transition-colors">Restaurant Portal</Link></li>
-              <li><Link to="/partner/addfood" className="hover:text-white transition-colors">Upload Food Reel</Link></li>
+              <li>
+                <button
+                  type="button"
+                  onClick={handleUploadClick}
+                  className="hover:text-white transition-colors text-left cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>Upload Food Reel</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA580C] animate-pulse"></span>
+                </button>
+              </li>
               <li><a href="#" className="hover:text-white transition-colors">Merchant Guidelines</a></li>
             </ul>
           </div>
@@ -156,6 +179,12 @@ export const Footer: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Upload Food Reel Window Access / Dropzone Modal */}
+      <UploadFoodReelModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+      />
     </footer>
   );
 };
