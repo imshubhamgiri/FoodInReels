@@ -83,7 +83,11 @@ export const deleteFoodItem = async (foodId: string, userId: string): Promise<vo
   }
 
   if (fooditem.videoPublicId) {
-    await storageService.deleteVideo(fooditem.videoPublicId);
+    try {
+      await storageService.deleteVideo(fooditem.videoPublicId);
+    } catch (error) {
+      console.warn(`Could not delete video from storage: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   await foodRepository.deleteFoodItem(foodId);
