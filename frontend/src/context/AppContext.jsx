@@ -49,7 +49,6 @@ export const AppProvider = ({ children }) => {
         const response = await partnerAPI.login(partnerData);
         setUser(response.user);
         setIsAuthenticated(true);
-        console.log("Partner logged in:", response);
         return response;
     }
 

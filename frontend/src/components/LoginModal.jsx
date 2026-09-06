@@ -6,7 +6,7 @@ const LoginModal = ({
   onClose,
   title = "Sign in to Continue",
   description = "Log in to view reels, like your favorite dishes, and place orders",
-  _userType
+  userType
 }) => {
   const navigate = useNavigate();
 
