@@ -8,18 +8,43 @@ import AddressInfo from '../components/user-profile/AddressInfo';
 import SavedFoodsTab from '../components/user-profile/SavedFoodsTab';
 import OrdersTab from '../components/user-profile/OrdersTab';
 import LoginModal from '../components/LoginModal';
+import LogoutLoader from '../components/ui/LogoutLoader';
 
 const UserProfile: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthLoading, setShowLoginModal } = useAppContext();
+  const { user, isAuthLoading, logout, setShowLoginModal } = useAppContext();
   const [activeTab, setActiveTab] = useState<string>('profile');
+  const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
 
   useEffect(() => {
-    // Show login modal if auth loading is complete and no user was found
-    if (!isAuthLoading && !user) {
+    // Show login modal if auth loading is complete, not logging out, and no user was found
+    if (!isAuthLoading && !isLoggingOut && !user) {
       setShowLoginModal(true);
     }
-  }, [user, isAuthLoading, setShowLoginModal]);
+  }, [user, isAuthLoading, isLoggingOut, setShowLoginModal]);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      if (logout) {
+        await logout();
+      }
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      navigate('/', { replace: true });
+    }
+  };
+
+  // While logging out, display modern dark glassmorphic loader
+  if (isLoggingOut) {
+    return (
+      <LogoutLoader 
+        message="Signing Out..." 
+        subMessage="Clearing your session and returning home..." 
+      />
+    );
+  }
 
   // While checking auth state on refresh, show a nice loading screen
   if (isAuthLoading) {
@@ -53,7 +78,7 @@ const UserProfile: React.FC = () => {
               </svg>
               Back to Home
             </Link>
-            <ProfileDropdown user={user} type="user" />
+            <ProfileDropdown user={user} type="user" onLogout={handleLogout} />
           </div>
         </div>
       </div>

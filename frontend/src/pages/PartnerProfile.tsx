@@ -6,36 +6,50 @@ import PartnerSidebar from '../components/partner/PartnerSidebar';
 import PartnerInfo from '../components/partner/PartnerInfo';
 import PartnerMenu from '../components/partner/PartnerMenu';
 import LoginModal from '../components/LoginModal';
+import LogoutLoader from '../components/ui/LogoutLoader';
 import usePartnerFoodItems from '../hooks/usePartnerFoodItems';
 
 const PartnerProfile: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthLoading, partnerLogout, setShowLoginModal } = useAppContext();
   const [activeTab, setActiveTab] = useState<string>('profile');
+  const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
   // Use our new hook for food operations
 
   useEffect(() => {
-    // Only redirect if auth loading is complete and no user was found, 
-    // or if the user is not a partner
-    if (!isAuthLoading) {
+    // Only redirect if auth loading is complete, user is not logging out, 
+    // and no user was found, or if the user is not a partner
+    if (!isAuthLoading && !isLoggingOut) {
       if (!user) {
         setShowLoginModal(true);
       } else if (user.userType !== 'partner') {
         navigate('/user/profile');
       }
     }
-  }, [user, isAuthLoading, setShowLoginModal, navigate]);
+  }, [user, isAuthLoading, isLoggingOut, setShowLoginModal, navigate]);
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true);
       if (partnerLogout) {
         await partnerLogout();
       }
-      navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
+    } finally {
+      navigate('/', { replace: true });
     }
   };
+
+  // While logging out, display modern dark glassmorphic loader
+  if (isLoggingOut) {
+    return (
+      <LogoutLoader 
+        message="Signing Out..." 
+        subMessage="Clearing partner session and returning home..." 
+      />
+    );
+  }
 
   // While checking auth state on refresh, show a nice loading screen
   if (isAuthLoading) {
@@ -69,7 +83,7 @@ const PartnerProfile: React.FC = () => {
               </svg>
               Back 
             </button>
-            <ProfileDropdown user={user} type="partner" />
+            <ProfileDropdown user={user} type="partner" onLogout={handleLogout} />
           </div>
         </div>
       </div>
