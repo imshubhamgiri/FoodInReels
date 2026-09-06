@@ -33,9 +33,14 @@ export const AppProvider = ({ children }) => {
     }
 
     const logout = async () => {
-        await userAPI.logout();
-        setUser(null);
-        setIsAuthenticated(false);
+        try {
+            await userAPI.logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            setUser(null);
+            setIsAuthenticated(false);
+        }
     }
 
     const partnerRegister = async (partnerData) => {
@@ -53,10 +58,14 @@ export const AppProvider = ({ children }) => {
     }
 
     const partnerLogout = async () => {
-        await partnerAPI.logout();
-        setUser(null);
-        setIsAuthenticated(false);
-
+        try {
+            await partnerAPI.logout();
+        } catch (error) {
+            console.error('Partner logout error:', error);
+        } finally {
+            setUser(null);
+            setIsAuthenticated(false);
+        }
     }
 
     const fetchUserData = async () => {
