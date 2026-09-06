@@ -5,10 +5,10 @@ import { useTheme } from '../context/ThemeContext';
 import { MoonIcon, Sun } from 'lucide-react';
 import usePartnerFoodItems from '../hooks/usePartnerFoodItems';
 
-function ProfileDropdown({ user, type  }) {
+function ProfileDropdown({ user, type, onLogout }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { logout } = useAppContext();
+  const { logout, partnerLogout } = useAppContext();
   const navigate = useNavigate();
  const{theme , toggleTheme} = useTheme();
  const {fetchProfile} = usePartnerFoodItems(user?.id, false);
@@ -33,11 +33,20 @@ function ProfileDropdown({ user, type  }) {
 
   const handleLogout = async () => {
     try {
-      await logout();
       setIsOpen(false);
-      navigate('/');
+      if (onLogout) {
+        await onLogout();
+        return;
+      }
+      if (type === 'partner' && partnerLogout) {
+        await partnerLogout();
+      } else if (logout) {
+        await logout();
+      }
     } catch (error) {
        console.error('Logout failed:', error);
+    } finally {
+      navigate('/', { replace: true });
     }
   };
 
