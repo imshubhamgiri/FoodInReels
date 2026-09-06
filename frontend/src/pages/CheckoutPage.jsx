@@ -220,14 +220,15 @@ export const CheckoutPage = () => {
     }
 
     // Determine partner ID (needs to be valid 24-hex ObjectId)
-    const rawPartnerId = checkoutItems[0]?.partnerId || checkoutItems[0]?.foodPartner?._id || '65f000000000000000000001';
+    const rawPartnerId = checkoutItems[0]?.partnerId || checkoutItems[0]?.foodPartner?._id 
     // Ensure 24-hex string
     const partnerId = /^[0-9a-fA-F]{24}$/.test(String(rawPartnerId)) 
       ? String(rawPartnerId) 
-      : '65f000000000000000000001';
+      : rawPartnerId;
 
     // Format items array matching createOrderSchema
     const orderItems = checkoutItems.map((item) => {
+      console.log(item)
       const rawFoodId = item._id || item.id || '65f000000000000000000002';
       const foodId = /^[0-9a-fA-F]{24}$/.test(String(rawFoodId))
         ? String(rawFoodId)
@@ -240,6 +241,7 @@ export const CheckoutPage = () => {
         priceSnapshot: Number(item.price) || 0,
       };
     });
+    console.log(orderItems.map(i => ({ food: i.food, name: i.nameSnapshot, qty: i.quantity, price: i.priceSnapshot })));
 
     const orderData = {
       foodPartner: partnerId,
