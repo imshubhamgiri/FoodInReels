@@ -46,11 +46,42 @@ const UserProfile: React.FC = () => {
     );
   }
 
-  // While checking auth state on refresh, show a nice loading screen
+  // While checking auth state on refresh, show a modern glassmorphic skeleton loader
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-b from-emerald-50 via-white to-cyan-50 dark:from-stone-950 dark:via-slate-950 dark:to-black">
-        <div className="text-slate-600 dark:text-slate-300">Loading your profile...</div>
+      <div className="min-h-screen bg-linear-to-b from-slate-50 via-white to-emerald-50/20 dark:from-stone-950 dark:via-slate-950 dark:to-black">
+        <div className="bg-white/70 dark:bg-stone-900/70 border-b border-slate-200 dark:border-slate-800 py-4 px-4 sm:px-8">
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <div className="h-5 w-28 bg-slate-200 dark:bg-slate-800 rounded-md animate-pulse" />
+            <div className="h-9 w-9 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="w-full lg:w-1/4 space-y-4">
+              <div className="bg-white/80 dark:bg-slate-900/70 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 animate-pulse">
+                <div className="w-20 h-20 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto" />
+                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-3/4 mx-auto" />
+                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-md w-1/2 mx-auto" />
+                <div className="pt-4 space-y-2">
+                  <div className="h-9 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                  <div className="h-9 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                  <div className="h-9 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                </div>
+              </div>
+            </div>
+            <div className="flex-1 bg-white/80 dark:bg-slate-900/70 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 min-h-[500px] space-y-6 animate-pulse">
+              <div className="h-7 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/3" />
+              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-1/2" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                <div className="h-14 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-14 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-14 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-14 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -69,15 +100,21 @@ const UserProfile: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-linear-to-b from-stone-950 dark:via-slate-950 dark:to-black">
       {/* Header with Profile Dropdown */}
-      <div className="bg-linear-to-r from-white/90 to-emerald-50/80 dark:from-stone-900/90 dark:to-slate-950/90 backdrop-blur-xl shadow-sm border-b border-emerald-100/70 dark:border-slate-800 sticky top-0 z-40">
+      <div className="bg-linear-to-r from-white/90 to-emerald-50/80 dark:from-stone-900/90 dark:to-slate-950/90 backdrop-blur-xl shadow-xs border-b border-emerald-100/70 dark:border-slate-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <Link to="/" className="inline-flex items-center text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Home
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link to="/" className="inline-flex items-center text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group">
+                <svg className="w-5 h-5 mr-1 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Home
+              </Link>
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {user?.name ? `Hi, ${user.name.split(' ')[0]}` : 'Account Settings'}
+              </div>
+            </div>
             <ProfileDropdown user={user} type="user" onLogout={handleLogout} />
           </div>
         </div>
