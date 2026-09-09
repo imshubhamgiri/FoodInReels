@@ -1,5 +1,6 @@
-import { Eye } from 'lucide-react';
+import { Navigation } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import FormInput from './FormInput';
 
 const AddressInput = ({ initialData, onSave, onCancel }) => {
@@ -73,7 +74,7 @@ const AddressInput = ({ initialData, onSave, onCancel }) => {
 
     // Validate required fields
     if (!payload.fullName || !payload.phone || !payload.address || !payload.city || !payload.state || !payload.postalCode) {
-      alert('Please fill all required fields');
+      toast.error('Please fill all required fields');
       return;
     }
 
@@ -98,7 +99,7 @@ const AddressInput = ({ initialData, onSave, onCancel }) => {
         onClick={handleUseCurrentLocation}
         className='w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center gap-2 mb-8 transition-colors'
       >
-        <Eye size={18} />
+        <Navigation size={18} />
         Use my current location
       </button>
 

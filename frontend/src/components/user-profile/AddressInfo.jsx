@@ -1,46 +1,45 @@
-import { Plus } from 'lucide-react';
+import { Plus, MapPin, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Addressbar from '../ui/Addressbar';
 import AddressInput from '../ui/AddressInput';
-import { profileAPI } from '../../services/api';
+import { useAppContext } from '../../context/AppContext';
 
 const AddressInfo = () => {
-  const [addresses, setAddresses] = useState([]);
+  const { 
+    addresses, 
+    isLoadingAddresses, 
+    fetchAddresses, 
+    addAddress, 
+    updateAddress, 
+    deleteAddress 
+  } = useAppContext();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
 
-  const getaddress = async () => {
-    const response = await profileAPI.getAddress();
-    console.log('address response', response);
-    setAddresses(response.data);
-  };
-
   useEffect(() => {
-    getaddress();
-  }, []);
+    fetchAddresses();
+  }, [fetchAddresses]);
 
   const handleAddAddress = async (newAddress) => {
     try {
-      const response = await profileAPI.addAddress(newAddress);
-      setAddresses((prev) => [...prev, response.data]);
+      await addAddress(newAddress);
       toast.success('Address added successfully');
       setShowAddForm(false);
     } catch (error) {
-      console.log('error adding address', error);
+      console.error('Error adding address:', error);
       toast.error('Failed to add address');
     }
   };
 
   const handleUpdateAddress = async (updatedData) => {
     try {
-      const response = await profileAPI.updateAddress(editingAddress.id, updatedData);
-      setAddresses((prev) => prev.map((addr) => (addr._id === editingAddress.id ? response.data : addr)));
+      await updateAddress(editingAddress.id, updatedData);
       toast.success('Address updated successfully');
       setEditingAddress(null);
       setShowAddForm(false);
     } catch (error) {
-      console.log('error updating address', error);
+      console.error('Error updating address:', error);
       toast.error('Failed to update address');
     }
   };
@@ -52,11 +51,10 @@ const AddressInfo = () => {
 
   const handleDelete = async (addressId) => {
     try {
-      await profileAPI.deleteAddress(addressId);
-      setAddresses((prev) => prev.filter((addr) => addr._id !== addressId));
+      await deleteAddress(addressId);
       toast.success('Address deleted successfully');
     } catch (error) {
-      console.log('error deleting address', error);
+      console.error('Error deleting address:', error);
       toast.error('Failed to delete address');
     }
   };
@@ -67,9 +65,14 @@ const AddressInfo = () => {
   };
 
   return (
-    <div className="p-10">
+    <div className="p-6 sm:p-10">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white border-b border-emerald-100 dark:border-slate-700 pb-4 mb-6">Manage Addresses</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white border-b border-emerald-100 dark:border-slate-700 pb-4 mb-6 flex items-center justify-between">
+          <span>Manage Addresses</span>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            {addresses.length} {addresses.length === 1 ? 'Address' : 'Addresses'}
+          </span>
+        </h2>
       </div>
 
       {showAddForm ? (
@@ -85,48 +88,58 @@ const AddressInfo = () => {
         </div>
       ) : (
         <div>
-          <div
+          <button
+            type="button"
             onClick={() => setShowAddForm(true)}
-            className="flex items-center border text-sky-400 border-blue-500 border-dashed rounded-lg p-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors mb-6"
+            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-sky-400/80 dark:border-sky-500/60 rounded-xl p-4 cursor-pointer hover:bg-sky-50/50 dark:hover:bg-slate-800/50 text-sky-600 dark:text-sky-400 transition-all mb-6 group"
           >
-            <div>
-              <Plus size={16} />
-            </div>
-            <div className="ml-2 text-sm font-medium">
-              Add New Address
-            </div>
-          </div>
+            <Plus size={18} className="group-hover:scale-110 transition-transform" />
+            <span className="text-sm font-semibold">Add New Address</span>
+          </button>
         </div>
       )}
 
-      <div className="space-y-4">
-        {addresses.length > 0 ? (
-          addresses.map((address, index) => (
-            <Addressbar
-              key={index}
-              id={address._id}
-              label={address.label}
-              fullName={address.fullName}
-              address={address.address}
-              phone={address.phone}
-              locality={address.locality}
-              city={address.city}
-              state={address.state}
-              postalCode={address.postalCode}
-              country={address.country}
-              landmark={address.landmark}
-              isDefault={address.isDefault}
-              className={'hover:-translate-y-1 transform duration-150'}
-              onDelete={handleDelete}
-              onEdit={handleEditAddress}
-            />
-          ))
-        ) : (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            No address for the Given User
-          </div>
-        )}
-      </div>
+      {isLoadingAddresses && addresses.length === 0 ? (
+        <div className="space-y-4 animate-pulse">
+          <div className="h-28 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+          <div className="h-28 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {addresses.length > 0 ? (
+            addresses.map((address) => (
+              <Addressbar
+                key={address._id || address.id}
+                id={address._id || address.id}
+                label={address.label}
+                fullName={address.fullName}
+                address={address.address}
+                phone={address.phone}
+                locality={address.locality}
+                city={address.city}
+                state={address.state}
+                postalCode={address.postalCode}
+                country={address.country}
+                landmark={address.landmark}
+                isDefault={address.isDefault}
+                className="hover:-translate-y-0.5 transition-transform duration-150 shadow-xs"
+                onDelete={handleDelete}
+                onEdit={handleEditAddress}
+              />
+            ))
+          ) : (
+            <div className="text-center py-12 px-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-3">
+                <MapPin size={24} />
+              </div>
+              <p className="text-base font-semibold text-slate-800 dark:text-slate-200">No saved addresses</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mt-1">
+                Save your home or work address for faster delivery checkout.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

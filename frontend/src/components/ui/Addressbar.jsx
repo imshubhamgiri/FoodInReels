@@ -1,5 +1,5 @@
-import { EllipsisVertical } from 'lucide-react'
-import React, { useState } from 'react'
+import { EllipsisVertical, Home, Briefcase, MapPin, Check, Edit2, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
 
 const Addressbar = ({
     id,
@@ -47,52 +47,67 @@ const Addressbar = ({
         setIsMenuOpen(false);
     };
 
+    const isWork = String(label || '').toLowerCase() === 'work';
+
     return (
-        <div className={`bg-white/70 dark:bg-gray-900/70 border border-gray-300 hover:border-blue-400  dark:border-gray-700 rounded-xl p-6 ${className}`}>
-            <div className='flex justify-between items-center '>
-                <div className='font-bold text-0.5 p-0.5 bg-gray-200 text-stone-500'>{label || 'HOME'}</div>
+        <div className={`bg-white/80 dark:bg-gray-900/80 border border-slate-200 dark:border-slate-800 hover:border-sky-400 dark:hover:border-sky-500 rounded-xl p-5 transition-all ${className}`}>
+            <div className='flex justify-between items-center mb-3'>
+                <div className='flex items-center gap-2'>
+                    <span className='inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700'>
+                        {isWork ? <Briefcase size={12} className="text-sky-500" /> : <Home size={12} className="text-emerald-500" />}
+                        {label || 'Home'}
+                    </span>
+                    {isDefault && (
+                        <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'>
+                            <Check size={11} /> Default
+                        </span>
+                    )}
+                </div>
                 <div className='relative'>
-                    <EllipsisVertical 
-                        size={23} 
-                        className='text-gray-400 cursor-pointer hover:text-gray-600' 
+                    <button
+                        type="button"
                         onClick={handleMenuClick}
-                    />
+                        aria-label="Address actions"
+                        className='p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors'
+                    >
+                        <EllipsisVertical size={18} />
+                    </button>
                     {isMenuOpen && (
-                        <div className='absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10'>
+                        <div className='absolute right-0 mt-1 w-32 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg shadow-lg z-10 py-1 text-sm'>
                             <button
                                 onClick={handleEditClick}
-                                className='w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors'
+                                className='w-full flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors'
                             >
-                                Edit
+                                <Edit2 size={14} /> Edit
                             </button>
                             <button
                                 onClick={handleDeleteClick}
-                                className='w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors border-t border-gray-200 dark:border-gray-600'
+                                className='w-full flex items-center gap-2 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700/50 transition-colors border-t border-slate-100 dark:border-gray-700'
                             >
-                                Delete
+                                <Trash2 size={14} /> Delete
                             </button>
                         </div>
                     )}
                 </div>
             </div>
-            {/* name and phone */}
-            <div className='flex items-center gap-4 py-3'>
-                <p className='font-medium text-gray-900 dark:text-white'>{fullName || 'John Doe'}</p>
-                <p className='text-sm text-gray-600 dark:text-gray-400'>{phone || '+1 (555) 123-4567'}</p>
+
+            {/* Name and phone */}
+            <div className='flex flex-wrap items-center gap-3 mb-2'>
+                <p className='font-semibold text-slate-900 dark:text-white text-base'>{fullName || 'John Doe'}</p>
+                <span className='text-xs text-slate-400'>•</span>
+                <p className='text-sm text-slate-600 dark:text-slate-400 font-medium'>{phone || '+91 9876543210'}</p>
             </div>
 
-            {/* address details  should be written like this - PD House, Mouna banganj , daldali bazar, Chapra, Bihar - 841301*/}
-            <div className='text-sm flex gap-2'>
-                <p className='text-gray-600 dark:text-gray-400'>{address || ''}</p>
-                <p className='text-gray-600 dark:text-gray-400'>{locality || ''}</p>
-                <p className='text-gray-600 dark:text-gray-400'>{city || 'New '}, {state || ''} - {postalCode || ''}</p>
-                <p className='text-gray-600 dark:text-gray-400'>{country || 'India'}</p>
-                {landmark && (
-                    <p className='text-gray-600 dark:text-gray-400'>Near {landmark}</p>
-                )}
+            {/* Formatted address details */}
+            <div className='text-sm text-slate-600 dark:text-slate-300 space-y-0.5 leading-relaxed'>
+                <p>{[address, locality].filter(Boolean).join(', ')}</p>
+                <p className='text-xs text-slate-500 dark:text-slate-400'>
+                    {[city, state].filter(Boolean).join(', ')}{postalCode ? ` - ${postalCode}` : ''}, {country || 'India'}
+                    {landmark ? ` • Near ${landmark}` : ''}
+                </p>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Addressbar
+export default Addressbar;
