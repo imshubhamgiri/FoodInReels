@@ -21,7 +21,7 @@ import {
   Navigation,
   Loader2
 } from 'lucide-react';
-import { orderAPI, profileAPI } from '../services/api';
+import { orderAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { useAppContext } from '../context/AppContext';
 import { useCart } from '../context/CartContext';
@@ -39,7 +39,14 @@ const INDIAN_STATES = [
 export const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAppContext();
+  const { 
+    user, 
+    isAuthenticated,
+    addresses,
+    isLoadingAddresses,
+    fetchAddresses,
+    addAddress
+  } = useAppContext();
   const { 
     items: cartItems, 
     subtotal: cartSubtotal, 
@@ -52,9 +59,7 @@ export const CheckoutPage = () => {
   const [directQuantity, setDirectQuantity] = useState(1);
 
   // Address states
-  const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
-  const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
 
@@ -99,34 +104,20 @@ export const CheckoutPage = () => {
     return cartItems;
   }, [directFood, directQuantity, cartItems]);
 
-  // Fetch addresses on mount
-  const fetchAddresses = async () => {
-    setLoadingAddresses(true);
-    try {
-      const response = await profileAPI.getAddress();
-      const list = response.data || [];
-      setAddresses(list);
-
-      if (list.length > 0) {
-        // Auto-select default or first address
+  // Initialize and auto-select default address
+  useEffect(() => {
+    const initAddresses = async () => {
+      const list = await fetchAddresses();
+      if (list && list.length > 0) {
         const defaultAddr = list.find((a) => a.isDefault) || list[0];
-        setSelectedAddressId(defaultAddr._id);
+        setSelectedAddressId((prev) => (prev ? prev : defaultAddr._id || defaultAddr.id));
         setShowAddressForm(false);
       } else {
-        // Prompt address creation immediately if none exist
         setShowAddressForm(true);
       }
-    } catch (error) {
-      console.error('Failed to load user addresses:', error);
-      setShowAddressForm(true);
-    } finally {
-      setLoadingAddresses(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
+    };
+    initAddresses();
+  }, [fetchAddresses]);
 
   // Compute pricing
   const itemTotal = useMemo(() => {
@@ -191,10 +182,8 @@ export const CheckoutPage = () => {
 
     setSavingAddress(true);
     try {
-      const response = await profileAPI.addAddress(payload);
-      const newAddr = response.data;
-      setAddresses((prev) => [...prev, newAddr]);
-      setSelectedAddressId(newAddr._id);
+      const newAddr = await addAddress(payload);
+      setSelectedAddressId(newAddr._id || newAddr.id);
       setShowAddressForm(false);
       toast.success('Delivery address saved successfully!');
     } catch (error) {
@@ -475,7 +464,7 @@ export const CheckoutPage = () => {
               </div>
 
               <div className="p-4 sm:p-5">
-                {loadingAddresses ? (
+                {isLoadingAddresses && addresses.length === 0 ? (
                   <div className="py-8 flex items-center justify-center gap-2 text-slate-400 text-xs">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Loading your saved addresses...</span>
