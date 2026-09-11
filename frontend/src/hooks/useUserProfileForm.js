@@ -10,23 +10,22 @@ const mapProfile = (profile = {}) => ({
 });
 
 export default function useUserProfileForm(seedUser) {
-  const { user, setUser } = useAppContext();
-  const [formData, setFormData] = useState(mapProfile(seedUser));
-  const [initialData, setInitialData] = useState(mapProfile(seedUser));
+  const { user, setUser, userProfile, setUserProfile, isProfileLoaded, fetchUserProfile } = useAppContext();
+  const [formData, setFormData] = useState(mapProfile(userProfile || seedUser));
+  const [initialData, setInitialData] = useState(mapProfile(userProfile || seedUser));
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const synced = mapProfile(seedUser);
+    const synced = mapProfile(userProfile || seedUser);
     setFormData(synced);
     setInitialData(synced);
-  }, [seedUser]);
+  }, [seedUser, userProfile]);
 
   const setField = useCallback((field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
-
 
   const buildChangedPayload = useCallback((fields = null) => {
     const keys = fields || Object.keys(formData);
@@ -38,8 +37,6 @@ export default function useUserProfileForm(seedUser) {
     }, {});
   }, [formData, initialData]);
 
-  
-
   const resetFields = useCallback((fields) => {
     setFormData((prev) => {
       const next = { ...prev };
@@ -50,19 +47,24 @@ export default function useUserProfileForm(seedUser) {
     });
   }, [initialData]);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (force = false) => {
+    if (!force && isProfileLoaded && userProfile) {
+      const mapped = mapProfile(userProfile);
+      setFormData(mapped);
+      setInitialData(mapped);
+      return mapped;
+    }
+
     setIsLoadingProfile(true);
     setErrorMessage('');
 
     try {
-      const result = await profileAPI.getMe();
-      const profile = result?.data;
-      if (!profile || typeof profile !== 'object') {
+      const data = await fetchUserProfile(force);
+      if (!data || typeof data !== 'object') {
         throw new Error('Invalid profile response');
       }
 
-      const mapped = mapProfile(profile);
-      setUser({...user, ...mapped});
+      const mapped = mapProfile(data);
       setFormData(mapped);
       setInitialData(mapped);
       return mapped;
@@ -74,7 +76,7 @@ export default function useUserProfileForm(seedUser) {
     } finally {
       setIsLoadingProfile(false);
     }
-  }, []);
+  }, [fetchUserProfile, isProfileLoaded, userProfile]);
 
   const saveProfile = useCallback(async (fields = null) => {
     const payload = buildChangedPayload(fields);
@@ -88,6 +90,12 @@ export default function useUserProfileForm(seedUser) {
     try {
       await profileAPI.updateMe(payload);
       setInitialData((prev) => ({ ...prev, ...payload }));
+      if (setUserProfile) {
+        setUserProfile((prev) => ({ ...prev, ...payload }));
+      }
+      if (setUser) {
+        setUser((prev) => ({ ...prev, ...payload }));
+      }
       return { ok: true, skipped: false, payload };
     } catch (error) {
       const message = error?.response?.data?.message || error?.message || 'Failed to update profile';
@@ -96,7 +104,7 @@ export default function useUserProfileForm(seedUser) {
     } finally {
       setIsSaving(false);
     }
-  }, [buildChangedPayload]);
+  }, [buildChangedPayload, setUser, setUserProfile]);
 
   const hasUnsavedChanges = useMemo(() => {
     return Object.keys(formData).some((key) => formData[key] !== initialData[key]);
