@@ -2,10 +2,7 @@ import * as React from 'react';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   Flame, 
-  ChevronLeft,
-  ChevronRight,
-  Sparkles, 
-  Utensils,
+  Utensils
 } from 'lucide-react';
 import { FoodCard, type FoodProduct } from './FoodCard';
 import { Tabs, type TabItem } from '../ui/Tabs';
@@ -21,11 +18,9 @@ interface FoodFeedProps {
 
 const CATEGORIES: TabItem[] = [
   { id: 'all', label: 'All Specials' },
-  { id: 'trending', label: '🔥 Trending' },
   { id: 'pizza', label: '🍕 Pizza & Pasta' },
   { id: 'burger', label: '🍔 Burgers' },
   { id: 'biryani', label: '🍗 Biryani & Bowls' },
-  { id: 'veg', label: '🥗 Pure Veg' },
   { id: 'dessert', label: '🍰 Desserts' },
   { id: 'beverages', label: '🥤 Beverages' }
 ];
@@ -34,7 +29,6 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
   const [activeCategory, setActiveCategory] = useState('all');
   const [productsList, setProductsList] = useState<FoodProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Cart integration for high-performance memoized FoodCards
   const { items, addToCart, updateQuantity, removeFromCart } = useCart();
@@ -77,20 +71,7 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
     }
   }, []);
 
-  // Scroll left and right functions for horizontal scroll mode (< md)
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -280, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 280, behavior: 'smooth' });
-    }
-  };
-
-  // Fetch foods from API with fallback to rich mock data
+  // Fetch foods from API with fallback to clean mock data
   useEffect(() => {
     let isMounted = true;
     const fetchDishes = async () => {
@@ -100,32 +81,12 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
         if (isMounted && res?.data && Array.isArray(res.data) && res.data.length > 0) {
           setProductsList(res.data);
         } else if (isMounted) {
-          setProductsList(FALLBACK_PRODUCTS.map((p: any) => ({
-            ...p,
-            isVeg: p.tags?.some((t: string) => 
-              t.toLowerCase().includes('south') || 
-              t.toLowerCase().includes('veg') || 
-              t.toLowerCase().includes('dessert') ||
-              p.name.toLowerCase().includes('paneer') ||
-              p.name.toLowerCase().includes('dosa') ||
-              p.name.toLowerCase().includes('cake')
-            )
-          })));
+          setProductsList(FALLBACK_PRODUCTS as FoodProduct[]);
         }
       } catch (err) {
         console.warn('Backend API offline, utilizing curated gourmet menu data:', err);
         if (isMounted) {
-          setProductsList(FALLBACK_PRODUCTS.map((p: any) => ({
-            ...p,
-            isVeg: p.tags?.some((t: string) => 
-              t.toLowerCase().includes('south') || 
-              t.toLowerCase().includes('veg') || 
-              t.toLowerCase().includes('dessert') ||
-              p.name.toLowerCase().includes('paneer') ||
-              p.name.toLowerCase().includes('dosa') ||
-              p.name.toLowerCase().includes('cake')
-            )
-          })));
+          setProductsList(FALLBACK_PRODUCTS as FoodProduct[]);
         }
       } finally {
         if (isMounted) setIsLoading(false);
@@ -136,25 +97,23 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
     return () => { isMounted = false; };
   }, []);
 
-  // Filter products by search query and category (memoized)
+  // Filter products by search query and category using authentic fields (memoized)
   const filteredProducts = useMemo(() => {
     return productsList.filter((item) => {
       const itemName = (item.name || '').toLowerCase();
-      const itemRest = (item.restaurant || item.restaurantName || '').toLowerCase();
-      const itemTags = (item.tags || []).join(' ').toLowerCase();
+      const itemDesc = (item.description || '').toLowerCase();
+      const itemRest = (item.restaurant || item.restaurantName || item.foodPartner?.restaurantName || '').toLowerCase();
       const search = searchQuery.toLowerCase().trim();
 
-      const matchesSearch = !search || itemName.includes(search) || itemRest.includes(search) || itemTags.includes(search);
+      const matchesSearch = !search || itemName.includes(search) || itemDesc.includes(search) || itemRest.includes(search);
       if (!matchesSearch) return false;
 
       if (activeCategory === 'all') return true;
-      if (activeCategory === 'trending') return itemTags.includes('trending') || itemTags.includes('bestseller') || (item.rating && item.rating >= 4.5);
-      if (activeCategory === 'pizza') return itemName.includes('pizza') || itemTags.includes('pizza') || itemTags.includes('italian');
-      if (activeCategory === 'burger') return itemName.includes('burger') || itemTags.includes('burger') || itemName.includes('sandwich');
-      if (activeCategory === 'biryani') return itemName.includes('biryani') || itemTags.includes('biryani') || itemName.includes('chicken');
-      if (activeCategory === 'veg') return item.isVeg || itemTags.includes('veg') || itemName.includes('paneer') || itemName.includes('dosa');
-      if (activeCategory === 'dessert') return itemName.includes('cake') || itemTags.includes('dessert') || itemName.includes('choco') || itemName.includes('ice');
-      if (activeCategory === 'beverages') return itemTags.includes('beverage') || itemName.includes('coffee') || itemName.includes('shake');
+      if (activeCategory === 'pizza') return itemName.includes('pizza') || itemDesc.includes('pizza') || itemName.includes('pasta');
+      if (activeCategory === 'burger') return itemName.includes('burger') || itemDesc.includes('burger') || itemName.includes('sandwich');
+      if (activeCategory === 'biryani') return itemName.includes('biryani') || itemDesc.includes('biryani') || itemName.includes('chicken') || itemName.includes('rice');
+      if (activeCategory === 'dessert') return itemName.includes('cake') || itemDesc.includes('cake') || itemName.includes('choco') || itemDesc.includes('dessert') || itemName.includes('ice');
+      if (activeCategory === 'beverages') return itemName.includes('coffee') || itemDesc.includes('coffee') || itemName.includes('shake') || itemName.includes('juice') || itemName.includes('tea');
 
       return true;
     });
@@ -175,33 +134,15 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
               Trending <span className="gradient-text-coral">Deliciousness</span>
             </h2>
             <p className="text-stone-600 dark:text-slate-400 text-xs sm:text-sm md:text-base max-w-xl">
-              Freshly prepared by top-rated artisanal kitchens. Savor the most ordered gourmet meals in your city.
+              Freshly prepared dishes by top-rated artisanal kitchens in your city.
             </p>
           </div>
 
-          {/* Left/Right Scroll Buttons for Mobile/Tablet (< md) + Desktop Counter */}
+          {/* Dish Counter */}
           <div className="flex items-center justify-between md:justify-end gap-3 pt-1">
             <span className="text-xs text-stone-500 dark:text-slate-400 font-medium">
-              <span className="text-stone-900 dark:text-white font-bold">{filteredProducts.length}</span> dishes found
+              <span className="text-stone-900 dark:text-white font-bold">{filteredProducts.length}</span> dishes available
             </span>
-
-            {/* Mobile/Tablet Horizontal Scroll Nav Buttons (< md) */}
-            <div className="flex md:hidden items-center gap-1.5">
-              <button
-                onClick={scrollLeft}
-                className="w-8 h-8 rounded-xl bg-white hover:bg-stone-100 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 flex items-center justify-center text-stone-700 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white transition-all active:scale-95 cursor-pointer shadow-xs"
-                aria-label="Scroll dishes left"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={scrollRight}
-                className="w-8 h-8 rounded-xl bg-white hover:bg-stone-100 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 flex items-center justify-center text-stone-700 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white transition-all active:scale-95 cursor-pointer shadow-xs"
-                aria-label="Scroll dishes right"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         </div>
 
@@ -214,30 +155,18 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
           />
         </div>
 
-        {/* Swipe Hint Pill on Mobile (< md) */}
-        <div className="flex md:hidden items-center justify-between text-[11px] text-stone-500 dark:text-slate-400 mb-2 px-1">
-          <span className="flex items-center gap-1 text-[#D97706] dark:text-[#FFB703]">
-            <Sparkles className="w-3 h-3" /> Scroll horizontally to explore
-          </span>
-          <span className="text-stone-400 dark:text-slate-500">2-row feed</span>
-        </div>
-
-        {/* Dishes Grid: 
-            - On screens < md: 2-row horizontal scrollable grid with snap scrolling
-            - On screens >= md: Standard 3/4 column responsive grid 
-        */}
+        {/* Responsive Vertical Grid (60 FPS Native Scrolling) */}
         {isLoading ? (
-          <div 
-            className="grid grid-rows-2 grid-flow-col auto-cols-[minmax(220px,260px)] sm:auto-cols-[280px] md:auto-cols-auto gap-3.5 sm:gap-4 md:gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 snap-x snap-mandatory md:snap-none md:grid-rows-none md:grid-flow-row md:grid-cols-3 lg:grid-cols-4 no-scrollbar"
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="snap-start h-full bg-white dark:bg-[#18181F] rounded-2xl p-3 sm:p-4 border border-stone-200/80 dark:border-white/5 space-y-3 min-w-[220px] md:min-w-0 shadow-xs">
-                <Skeleton height="h-28 sm:h-36 md:h-44" className="w-full rounded-xl" />
+              <div key={i} className="h-full bg-white dark:bg-[#18181F] rounded-2xl p-3 sm:p-4 border border-stone-200/80 dark:border-white/5 space-y-3 shadow-xs">
+                <Skeleton height="h-36 sm:h-40 md:h-44" className="w-full rounded-xl" />
+                <Skeleton height="h-3" className="w-1/3" />
                 <Skeleton height="h-4" className="w-3/4" />
                 <Skeleton height="h-3" className="w-1/2" />
                 <div className="flex justify-between items-center pt-2">
-                  <Skeleton height="h-5" className="w-14" />
-                  <Skeleton height="h-7" className="w-16 rounded-xl" />
+                  <Skeleton height="h-5" className="w-16" />
+                  <Skeleton height="h-8" className="w-20 rounded-xl" />
                 </div>
               </div>
             ))}
@@ -249,9 +178,10 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
             </div>
             <h3 className="text-base font-bold text-stone-900 dark:text-white mb-1">No dishes found</h3>
             <p className="text-xs text-stone-500 dark:text-slate-400 mb-4">
-              We couldn't find dishes matching "{searchQuery || activeCategory}". Try choosing another category!
+              We couldn't find dishes matching "{searchQuery || activeCategory}". Try selecting another category!
             </p>
             <button
+              type="button"
               onClick={() => { setActiveCategory('all'); }}
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF462D] to-[#FF6B4A] text-white text-xs font-bold shadow-md cursor-pointer"
             >
@@ -259,17 +189,11 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
             </button>
           </div>
         ) : (
-          <div
-            ref={scrollContainerRef}
-            className="grid grid-rows-2 grid-flow-col auto-cols-[minmax(220px,260px)] sm:auto-cols-[280px] md:auto-cols-auto gap-3.5 sm:gap-4 md:gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 pt-1 snap-x snap-mandatory md:snap-none md:grid-rows-none md:grid-flow-row md:grid-cols-3 lg:grid-cols-4 no-scrollbar overscroll-x-contain"
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
             {filteredProducts.map((product) => {
               const id = String(product._id || product.id || product.name);
               return (
-                <div 
-                  key={id} 
-                  className="snap-start h-full min-w-[220px] sm:min-w-[260px] md:min-w-0"
-                >
+                <div key={id} className="h-full">
                   <FoodCard
                     product={product}
                     quantity={cartQuantityMap[id] || 0}
