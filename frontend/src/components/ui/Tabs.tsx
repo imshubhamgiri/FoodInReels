@@ -27,7 +27,7 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 overflow-x-auto no-scrollbar p-1.5 bg-[#14141B] rounded-2xl border border-white/5',
+        'flex items-center gap-2 overflow-x-auto no-scrollbar p-1.5 bg-stone-200/60 dark:bg-[#14141B] rounded-2xl border border-stone-200/80 dark:border-white/5 shadow-xs',
         className
       )}
     >
@@ -42,7 +42,7 @@ export const Tabs: React.FC<TabsProps> = ({
               'relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all duration-200 shrink-0 select-none cursor-pointer focus-visible:outline-none',
               isActive
                 ? 'text-white font-semibold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]',
+                : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-slate-200 hover:bg-white/80 dark:hover:bg-white/[0.04]',
               tabClassName
             )}
           >

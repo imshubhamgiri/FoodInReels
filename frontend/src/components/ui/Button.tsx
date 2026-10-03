@@ -13,10 +13,10 @@ const variantStyles: Record<NonNullable<ButtonProps['variant']>, string> = {
   default: 'bg-gradient-to-r from-[#FF462D] to-[#FF6B4A] text-white shadow-lg shadow-[#FF462D]/25 hover:shadow-[#FF462D]/40 hover:brightness-110 border border-[#FF6B4A]/40',
   primary: 'bg-gradient-to-r from-[#FF462D] to-[#FF6B4A] text-white shadow-lg shadow-[#FF462D]/25 hover:shadow-[#FF462D]/40 hover:brightness-110 border border-[#FF6B4A]/40',
   gold: 'bg-gradient-to-r from-[#FFB703] to-[#FFA000] text-black font-semibold shadow-lg shadow-[#FFB703]/25 hover:shadow-[#FFB703]/40 hover:brightness-105 border border-[#FFD066]/50',
-  secondary: 'bg-[#1E1E27] text-slate-200 hover:bg-[#282834] hover:text-white border border-white/10 shadow-sm',
-  outline: 'bg-transparent text-slate-200 hover:text-white border border-white/15 hover:border-white/30 hover:bg-white/[0.04]',
-  ghost: 'bg-transparent text-slate-300 hover:text-white hover:bg-white/[0.06]',
-  glass: 'bg-white/[0.08] backdrop-blur-md text-white border border-white/15 hover:bg-white/[0.14] shadow-sm',
+  secondary: 'bg-stone-100 dark:bg-[#1E1E27] text-stone-800 dark:text-slate-200 hover:bg-stone-200 dark:hover:bg-[#282834] hover:text-stone-900 dark:hover:text-white border border-stone-200 dark:border-white/10 shadow-xs',
+  outline: 'bg-transparent text-stone-700 dark:text-slate-200 hover:text-stone-900 dark:hover:text-white border border-stone-300 dark:border-white/15 hover:border-stone-400 dark:hover:border-white/30 hover:bg-stone-100/50 dark:hover:bg-white/[0.04]',
+  ghost: 'bg-transparent text-stone-700 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/[0.06]',
+  glass: 'bg-stone-900/5 dark:bg-white/[0.08] backdrop-blur-md text-stone-800 dark:text-white border border-stone-200 dark:border-white/15 hover:bg-stone-900/10 dark:hover:bg-white/[0.14] shadow-xs',
   destructive: 'bg-red-600 text-white hover:bg-red-700 shadow-md shadow-red-900/30'
 };
 

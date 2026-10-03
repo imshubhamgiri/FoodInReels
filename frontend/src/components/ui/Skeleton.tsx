@@ -15,7 +15,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   return (
     <div
       className={cn(
-        'animate-pulse rounded-xl bg-white/[0.06] backdrop-blur-sm',
+        'animate-pulse rounded-xl bg-stone-200/80 dark:bg-white/[0.06]',
         height,
         width,
         className

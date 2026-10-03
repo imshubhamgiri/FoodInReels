@@ -12,8 +12,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'bg-[#18181F] text-[#F8FAFC] rounded-2xl border border-white/[0.08] transition-all duration-300',
-          hoverEffect && 'hover:border-white/20 hover:bg-[#1E1E28] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/40',
+          'bg-white dark:bg-[#18181F] text-stone-900 dark:text-[#F8FAFC] rounded-2xl border border-stone-200/80 dark:border-white/[0.08] transition-all duration-300 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none',
+          hoverEffect && 'hover:border-stone-300 dark:hover:border-white/20 hover:bg-stone-50/50 dark:hover:bg-[#1E1E28] hover:-translate-y-1 hover:shadow-xl hover:shadow-stone-900/5 dark:hover:shadow-black/40',
           glow === 'primary' && 'hover:shadow-[0_0_30px_-5px_rgba(255,70,45,0.25)] hover:border-[#FF462D]/40',
           glow === 'gold' && 'hover:shadow-[0_0_30px_-5px_rgba(255,183,3,0.25)] hover:border-[#FFB703]/40',
           glow === 'emerald' && 'hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.25)] hover:border-[#10B981]/40',
@@ -37,14 +37,14 @@ CardHeader.displayName = 'CardHeader';
 
 export const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('font-semibold text-lg md:text-xl leading-none tracking-tight text-white font-heading', className)} {...props} />
+    <h3 ref={ref} className={cn('font-semibold text-lg md:text-xl leading-none tracking-tight text-stone-900 dark:text-white font-heading', className)} {...props} />
   )
 );
 CardTitle.displayName = 'CardTitle';
 
 export const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-sm text-[#94A3B8]', className)} {...props} />
+    <p ref={ref} className={cn('text-sm text-stone-600 dark:text-[#94A3B8]', className)} {...props} />
   )
 );
 CardDescription.displayName = 'CardDescription';

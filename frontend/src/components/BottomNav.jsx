@@ -23,7 +23,7 @@ const BottomNav = () => {
 
   return (
     <nav 
-      className="bottom-nav-responsive z-50 px-3 py-2 shadow-2xl shadow-black/80 backdrop-blur-2xl bg-[#18181F]/90 border border-white/10"
+      className="bottom-nav-responsive z-50 px-3 py-2 shadow-lg shadow-stone-900/5 dark:shadow-2xl dark:shadow-black/80 bg-white/95 dark:bg-[#18181F]/90 border border-stone-200/80 dark:border-white/10"
       aria-label="Bottom Navigation"
     >
       <div className="flex items-center justify-around gap-1 max-w-md mx-auto">
@@ -41,7 +41,7 @@ const BottomNav = () => {
               {isActive && (
                 <motion.div
                   layoutId="activeBottomNavPill"
-                  className="absolute inset-0 bg-gradient-to-r from-[#FF462D]/20 to-[#FF6B4A]/20 border border-[#FF462D]/40 rounded-2xl shadow-sm"
+                  className="absolute inset-0 bg-[#FF462D]/10 dark:bg-gradient-to-r dark:from-[#FF462D]/20 dark:to-[#FF6B4A]/20 border border-[#FF462D]/30 dark:border-[#FF462D]/40 rounded-2xl shadow-xs"
                   transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                 />
               )}
@@ -50,7 +50,7 @@ const BottomNav = () => {
                 <div className="relative">
                   <Icon 
                     className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${
-                      isActive ? 'text-[#FF462D]' : 'text-slate-400 group-hover:text-slate-200'
+                      isActive ? 'text-[#FF462D]' : 'text-stone-500 dark:text-slate-400 group-hover:text-stone-800 dark:group-hover:text-slate-200'
                     }`} 
                   />
                   {item.badge && (
@@ -64,7 +64,7 @@ const BottomNav = () => {
                 </div>
                 <span 
                   className={`text-[11px] font-medium transition-colors ${
-                    isActive ? 'text-white font-bold' : 'text-slate-400 group-hover:text-slate-200'
+                    isActive ? 'text-[#FF462D] font-bold' : 'text-stone-600 dark:text-slate-400 group-hover:text-stone-900 dark:group-hover:text-slate-200'
                   }`}
                 >
                   {item.label}
