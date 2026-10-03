@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 
 const LoginModal = ({
   isOpen = true,
-  onClose,
+  onClose = () => {},
   title = "Sign in to Continue",
   description = "Log in to view reels, like your favorite dishes, and place orders",
-  userType
+  userType: _userType = "user"
 }) => {
   const navigate = useNavigate();
 

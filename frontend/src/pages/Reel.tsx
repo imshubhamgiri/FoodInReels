@@ -286,7 +286,14 @@ const Reel: React.FC = () => {
                 key={video._id}
                 className="reel-item flex items-center justify-center bg-black"
               >
-                <VideoCard video={video} index={index} videoRefs={videoRefs} isMuted={isMuted} setIsMuted={setIsMuted} />
+                <VideoCard 
+                  video={video} 
+                  setVideoRef={(el: HTMLVideoElement | null) => { 
+                    if (videoRefs.current) videoRefs.current[index] = el; 
+                  }} 
+                  isMuted={isMuted} 
+                  setIsMuted={setIsMuted} 
+                />
                 {/* Mute Indicator */}
                 {isMuted && (
                   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/40 p-4 rounded-full pointer-events-none backdrop-blur-sm animate-pulse z-10">
