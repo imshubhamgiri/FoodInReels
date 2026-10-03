@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import Navbar from '../components/landing/Navbar';
 import PromoBanner from '../components/landing/PromoBanner';
 import ReelsTeaser from '../components/landing/ReelsTeaser';

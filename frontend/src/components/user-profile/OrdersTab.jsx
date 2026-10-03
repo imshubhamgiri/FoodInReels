@@ -14,7 +14,7 @@ export default function OrdersTab() {
         setIsLoading(true);
         const response = await orderAPI.getMyOrders();
         setOrders(response.data || response || []);
-      } catch (err) {
+      } catch {
         setError('Failed to load orders. Please try again.');
       } finally {
         setIsLoading(false);

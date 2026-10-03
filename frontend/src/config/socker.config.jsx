@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { toast } from 'react-toastify';
 import { useAppContext } from '../context/AppContext';

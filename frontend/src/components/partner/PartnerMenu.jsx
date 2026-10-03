@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import usePartnerFoodItems from '../../hooks/usePartnerFoodItems';
 export default function PartnerMenu({ partner }) {
@@ -11,8 +11,7 @@ export default function PartnerMenu({ partner }) {
     foodItems, 
     deleteFoodItem, 
     updateFoodItem, 
-    editLoading,
-    refreshFoodItems
+    editLoading
   } = usePartnerFoodItems(partner?.id, true);
 
 
