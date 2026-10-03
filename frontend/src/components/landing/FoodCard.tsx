@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Star, 
   Clock, 
@@ -10,8 +9,6 @@ import {
   Minus
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
-import { useAppContext } from '../../context/AppContext';
-import { useCart } from '../../context/CartContext';
 import { cn } from '../../lib/utils';
 
 export interface FoodProduct {
@@ -35,17 +32,25 @@ export interface FoodProduct {
   category?: string;
 }
 
-interface FoodCardProps {
+export interface FoodCardProps {
   product: FoodProduct;
+  quantity?: number;
+  onIncrement?: (product: FoodProduct, currentQuantity: number) => void;
+  onDecrement?: (id: string, currentQuantity: number) => void;
   onAddToCart?: (product: FoodProduct, quantity: number) => void;
 }
 
-export const FoodCard: React.FC<FoodCardProps> = ({ product, onAddToCart }) => {
-  const { addToCart, updateQuantity, getItemQuantity, removeFromCart } = useCart();
+export const FoodCard = React.memo<FoodCardProps>(function FoodCard({ 
+  product, 
+  quantity = 0,
+  onIncrement,
+  onDecrement,
+  onAddToCart 
+}) {
   const [isLiked, setIsLiked] = useState(false);
 
   const id = String(product._id || product.id || product.name);
-  const currentQuantity = getItemQuantity(id);
+  const currentQuantity = quantity;
   const name = product.name || 'Gourmet Specialty';
   const restaurant = product.restaurant || product.restaurantName || product.foodPartner?.restaurantName || 'Artisan Kitchen';
   const price = Number(product.price || 199);
@@ -58,21 +63,13 @@ export const FoodCard: React.FC<FoodCardProps> = ({ product, onAddToCart }) => {
 
   const handleIncrement = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (currentQuantity === 0) {
-      addToCart(product, 1);
-    } else {
-      updateQuantity(id, currentQuantity + 1);
-    }
+    onIncrement?.(product, currentQuantity);
     onAddToCart?.(product, currentQuantity + 1);
   };
 
   const handleDecrement = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (currentQuantity <= 1) {
-      removeFromCart(id);
-    } else {
-      updateQuantity(id, currentQuantity - 1);
-    }
+    onDecrement?.(id, currentQuantity);
     onAddToCart?.(product, Math.max(0, currentQuantity - 1));
   };
 
@@ -90,7 +87,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({ product, onAddToCart }) => {
         <img
           src={image}
           alt={name}
-          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108"
+          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.08]"
           loading="lazy"
         />
 
@@ -201,6 +198,6 @@ export const FoodCard: React.FC<FoodCardProps> = ({ product, onAddToCart }) => {
       </div>
     </div>
   );
-};
+});
 
 export default FoodCard;

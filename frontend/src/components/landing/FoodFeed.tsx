@@ -1,21 +1,18 @@
 import * as React from 'react';
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   Flame, 
-  ArrowRight, 
   ChevronLeft,
   ChevronRight,
   Sparkles, 
   Utensils,
-  SlidersHorizontal,
-  Compass
 } from 'lucide-react';
 import { FoodCard, type FoodProduct } from './FoodCard';
 import { Tabs, type TabItem } from '../ui/Tabs';
 import { Skeleton } from '../ui/Skeleton';
 import { foodAPI } from '../../services/api';
 import { products as FALLBACK_PRODUCTS } from '../../data/products';
+import { useCart } from '../../context/CartContext';
 
 interface FoodFeedProps {
   searchQuery?: string;
@@ -38,6 +35,47 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
   const [productsList, setProductsList] = useState<FoodProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Cart integration for high-performance memoized FoodCards
+  const { items, addToCart, updateQuantity, removeFromCart } = useCart();
+
+  // Stable ref for cart actions so callback props never change reference
+  const cartActionsRef = useRef({ addToCart, updateQuantity, removeFromCart, onAddToCart });
+  useEffect(() => {
+    cartActionsRef.current = { addToCart, updateQuantity, removeFromCart, onAddToCart };
+  }, [addToCart, updateQuantity, removeFromCart, onAddToCart]);
+
+  // Fast O(1) map of food ID -> quantity in cart
+  const cartQuantityMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (item && item._id) {
+          map[String(item._id)] = Number(item.quantity || 0);
+        }
+      }
+    }
+    return map;
+  }, [items]);
+
+  // Permanently stable increment callback (never breaks React.memo)
+  const handleIncrement = useCallback((product: FoodProduct, currentQty: number) => {
+    const id = String(product._id || product.id || product.name);
+    if (currentQty === 0) {
+      cartActionsRef.current.addToCart(product, 1);
+    } else {
+      cartActionsRef.current.updateQuantity(id, currentQty + 1);
+    }
+  }, []);
+
+  // Permanently stable decrement callback (never breaks React.memo)
+  const handleDecrement = useCallback((id: string, currentQty: number) => {
+    if (currentQty <= 1) {
+      cartActionsRef.current.removeFromCart(id);
+    } else {
+      cartActionsRef.current.updateQuantity(id, currentQty - 1);
+    }
+  }, []);
 
   // Scroll left and right functions for horizontal scroll mode (< md)
   const scrollLeft = () => {
@@ -98,27 +136,29 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
     return () => { isMounted = false; };
   }, []);
 
-  // Filter products by search query and category
-  const filteredProducts = productsList.filter((item) => {
-    const itemName = (item.name || '').toLowerCase();
-    const itemRest = (item.restaurant || item.restaurantName || '').toLowerCase();
-    const itemTags = (item.tags || []).join(' ').toLowerCase();
-    const search = searchQuery.toLowerCase().trim();
+  // Filter products by search query and category (memoized)
+  const filteredProducts = useMemo(() => {
+    return productsList.filter((item) => {
+      const itemName = (item.name || '').toLowerCase();
+      const itemRest = (item.restaurant || item.restaurantName || '').toLowerCase();
+      const itemTags = (item.tags || []).join(' ').toLowerCase();
+      const search = searchQuery.toLowerCase().trim();
 
-    const matchesSearch = !search || itemName.includes(search) || itemRest.includes(search) || itemTags.includes(search);
-    if (!matchesSearch) return false;
+      const matchesSearch = !search || itemName.includes(search) || itemRest.includes(search) || itemTags.includes(search);
+      if (!matchesSearch) return false;
 
-    if (activeCategory === 'all') return true;
-    if (activeCategory === 'trending') return itemTags.includes('trending') || itemTags.includes('bestseller') || (item.rating && item.rating >= 4.5);
-    if (activeCategory === 'pizza') return itemName.includes('pizza') || itemTags.includes('pizza') || itemTags.includes('italian');
-    if (activeCategory === 'burger') return itemName.includes('burger') || itemTags.includes('burger') || itemName.includes('sandwich');
-    if (activeCategory === 'biryani') return itemName.includes('biryani') || itemTags.includes('biryani') || itemName.includes('chicken');
-    if (activeCategory === 'veg') return item.isVeg || itemTags.includes('veg') || itemName.includes('paneer') || itemName.includes('dosa');
-    if (activeCategory === 'dessert') return itemName.includes('cake') || itemTags.includes('dessert') || itemName.includes('choco') || itemName.includes('ice');
-    if (activeCategory === 'beverages') return itemTags.includes('beverage') || itemName.includes('coffee') || itemName.includes('shake');
+      if (activeCategory === 'all') return true;
+      if (activeCategory === 'trending') return itemTags.includes('trending') || itemTags.includes('bestseller') || (item.rating && item.rating >= 4.5);
+      if (activeCategory === 'pizza') return itemName.includes('pizza') || itemTags.includes('pizza') || itemTags.includes('italian');
+      if (activeCategory === 'burger') return itemName.includes('burger') || itemTags.includes('burger') || itemName.includes('sandwich');
+      if (activeCategory === 'biryani') return itemName.includes('biryani') || itemTags.includes('biryani') || itemName.includes('chicken');
+      if (activeCategory === 'veg') return item.isVeg || itemTags.includes('veg') || itemName.includes('paneer') || itemName.includes('dosa');
+      if (activeCategory === 'dessert') return itemName.includes('cake') || itemTags.includes('dessert') || itemName.includes('choco') || itemName.includes('ice');
+      if (activeCategory === 'beverages') return itemTags.includes('beverage') || itemName.includes('coffee') || itemName.includes('shake');
 
-    return true;
-  });
+      return true;
+    });
+  }, [productsList, searchQuery, activeCategory]);
 
   return (
     <section id="trending-feed" className="py-10 md:py-20 bg-[#0D0D11] relative">
@@ -223,17 +263,23 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
             ref={scrollContainerRef}
             className="grid grid-rows-2 grid-flow-col auto-cols-[minmax(220px,260px)] sm:auto-cols-[280px] md:auto-cols-auto gap-3.5 sm:gap-4 md:gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 pt-1 snap-x snap-mandatory md:snap-none md:grid-rows-none md:grid-flow-row md:grid-cols-3 lg:grid-cols-4 no-scrollbar overscroll-x-contain"
           >
-            {filteredProducts.map((product) => (
-              <div 
-                key={product._id || product.id || product.name} 
-                className="snap-start h-full min-w-[220px] sm:min-w-[260px] md:min-w-0"
-              >
-                <FoodCard
-                  product={product}
-                  onAddToCart={onAddToCart}
-                />
-              </div>
-            ))}
+            {filteredProducts.map((product) => {
+              const id = String(product._id || product.id || product.name);
+              return (
+                <div 
+                  key={id} 
+                  className="snap-start h-full min-w-[220px] sm:min-w-[260px] md:min-w-0"
+                >
+                  <FoodCard
+                    product={product}
+                    quantity={cartQuantityMap[id] || 0}
+                    onIncrement={handleIncrement}
+                    onDecrement={handleDecrement}
+                    onAddToCart={onAddToCart}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
 
