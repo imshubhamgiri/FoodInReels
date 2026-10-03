@@ -155,11 +155,11 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
           />
         </div>
 
-        {/* Responsive Vertical Grid (60 FPS Native Scrolling) */}
+        {/* Horizontal card grid on mobile, regular grid on larger screens */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+          <div className="grid grid-rows-1 grid-flow-col auto-cols-[calc(50%-8px)] sm:auto-cols-[calc(33.333%-16px)] md:grid-flow-row md:grid-rows-none md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:overflow-visible md:pb-0">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-full bg-white dark:bg-[#18181F] rounded-2xl p-3 sm:p-4 border border-stone-200/80 dark:border-white/5 space-y-3 shadow-xs">
+              <div key={i} className="h-full min-w-0 bg-white dark:bg-[#18181F] rounded-2xl p-3 sm:p-4 border border-stone-200/80 dark:border-white/5 space-y-3 shadow-xs snap-start">
                 <Skeleton height="h-36 sm:h-40 md:h-44" className="w-full rounded-xl" />
                 <Skeleton height="h-3" className="w-1/3" />
                 <Skeleton height="h-4" className="w-3/4" />
@@ -189,11 +189,11 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+          <div className="grid grid-rows-1 grid-flow-col auto-cols-[calc(50%-8px)] sm:auto-cols-[calc(33.333%-16px)] md:grid-flow-row md:grid-rows-none md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:overflow-visible md:pb-0">
             {filteredProducts.map((product) => {
               const id = String(product._id || product.id || product.name);
               return (
-                <div key={id} className="h-full">
+                <div key={id} className="h-full min-w-0 snap-start">
                   <FoodCard
                     product={product}
                     quantity={cartQuantityMap[id] || 0}

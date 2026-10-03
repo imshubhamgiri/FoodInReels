@@ -17,11 +17,11 @@ const FoodCard = ({ product }) => {
   return (
     <div className="bg-white dark:bg-stone-800 rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 dark:border-stone-700 cursor-pointer group flex flex-col h-full">
       {/* Image container */}
-      <div className="relative h-28 md:h-48 overflow-hidden shrink-0">
+      <div className="relative h-28 md:h-48 overflow-hidden shrink-0 bg-stone-100 dark:bg-stone-900">
         <img 
           src={normalizedProduct.image} 
           alt={normalizedProduct.name} 
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-cover bg-stone-100 dark:bg-stone-900 transition-transform duration-500 group-hover:scale-110"
         />
         
         {/* Badges/Tags */}
