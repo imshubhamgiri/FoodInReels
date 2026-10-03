@@ -127,10 +127,10 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
   return (
     <header 
       className={cn(
-        'sticky top-0 z-40 w-full transition-all duration-300',
+        'sticky top-0 z-40 w-full py-2.5 sm:py-3 transition-[background-color,border-color,box-shadow] duration-200',
         isScrolled 
-          ? 'bg-white/95 dark:bg-[#0D0D11]/95 backdrop-blur-md border-b border-stone-200/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-2xl dark:shadow-black/60 py-2.5' 
-          : 'bg-white/80 dark:bg-[#0D0D11]/80 backdrop-blur-sm border-b border-stone-200/60 dark:border-white/[0.05] py-2.5 sm:py-3.5'
+          ? 'bg-white/98 dark:bg-[#0D0D11]/98 border-b border-stone-200/90 dark:border-white/[0.08] shadow-sm shadow-stone-900/5 dark:shadow-black/60' 
+          : 'bg-white/95 dark:bg-[#0D0D11]/95 border-b border-stone-200/60 dark:border-white/[0.05]'
       )}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -308,13 +308,11 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
             >
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               {cartItemCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1.5 -right-1.5 bg-[#FF462D] text-white text-[9px] sm:text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-[#0D0D11] shadow-md shadow-[#FF462D]/40"
+                <span
+                  className="absolute -top-1.5 -right-1.5 bg-[#FF462D] text-white text-[9px] sm:text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-[#0D0D11] shadow-xs"
                 >
                   {cartItemCount}
-                </motion.span>
+                </span>
               )}
             </button>
 
