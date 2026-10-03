@@ -80,10 +80,10 @@ export const FoodCard = React.memo<FoodCardProps>(function FoodCard({
 
   return (
     <div 
-      className="group relative flex flex-col h-full bg-[#18181F] rounded-2xl border border-white/[0.08] hover:border-white/20 shadow-md hover:shadow-2xl hover:shadow-black/60 transition-all duration-300 overflow-hidden select-none"
+      className="group relative flex flex-col h-full bg-white dark:bg-[#18181F] rounded-2xl border border-stone-200/80 dark:border-white/[0.08] hover:border-stone-300 dark:hover:border-white/20 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-md dark:hover:shadow-2xl dark:hover:shadow-black/60 transition-all duration-300 overflow-hidden select-none"
     >
       {/* Top Image Container */}
-      <div className="relative w-full h-28 xs:h-32 sm:h-36 md:h-44 overflow-hidden bg-[#121217] shrink-0">
+      <div className="relative w-full h-28 xs:h-32 sm:h-36 md:h-44 overflow-hidden bg-stone-100 dark:bg-[#121217] shrink-0">
         <img
           src={image}
           alt={name}
@@ -92,7 +92,7 @@ export const FoodCard = React.memo<FoodCardProps>(function FoodCard({
         />
 
         {/* Ambient Gradient Shading */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#18181F] via-transparent to-black/30 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#18181F] via-transparent to-black/30 pointer-events-none" />
 
         {/* Top Left: Veg Indicator & Tag */}
         <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 flex items-center gap-1.5 z-10">
@@ -131,33 +131,33 @@ export const FoodCard = React.memo<FoodCardProps>(function FoodCard({
         
         <div>
           {/* Restaurant & Free Delivery Tag */}
-          <div className="flex items-center justify-between text-[11px] sm:text-xs text-[#94A3B8] font-medium mb-1 gap-1">
+          <div className="flex items-center justify-between text-[11px] sm:text-xs text-stone-500 dark:text-[#94A3B8] font-medium mb-1 gap-1">
             <span className="truncate max-w-[130px] sm:max-w-[160px]">{restaurant}</span>
-            <span className="flex items-center gap-0.5 text-[10px] sm:text-[11px] text-emerald-400 font-semibold shrink-0">
-              <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" />
+            <span className="flex items-center gap-0.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">
+              <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-600 dark:text-emerald-400" />
               Free
             </span>
           </div>
 
           {/* Dish Title */}
-          <h3 className="font-heading font-bold text-xs sm:text-sm md:text-base text-white line-clamp-1 group-hover:text-[#FF6B4A] transition-colors mb-1.5">
+          <h3 className="font-heading font-bold text-xs sm:text-sm md:text-base text-stone-900 dark:text-white line-clamp-1 group-hover:text-[#FF462D] dark:group-hover:text-[#FF6B4A] transition-colors mb-1.5">
             {name}
           </h3>
 
           {/* Delivery Estimate */}
-          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-400 mb-3">
-            <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-stone-400 dark:text-slate-400 mb-3">
+            <Clock className="w-3 h-3 text-stone-400 dark:text-slate-400 shrink-0" />
             <span>{deliveryTime}</span>
           </div>
         </div>
 
         {/* Bottom Price & Add Action */}
-        <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
+        <div className="pt-2 border-t border-stone-100 dark:border-white/[0.06] flex items-center justify-between gap-2">
           
           {/* Price Tag */}
           <div className="flex flex-col">
-            <span className="text-[10px] sm:text-[11px] text-slate-500 line-through">₹{originalPrice}</span>
-            <span className="text-sm sm:text-base md:text-lg font-extrabold text-white leading-tight">₹{price}</span>
+            <span className="text-[10px] sm:text-[11px] text-stone-400 dark:text-slate-500 line-through">₹{originalPrice}</span>
+            <span className="text-sm sm:text-base md:text-lg font-extrabold text-stone-900 dark:text-white leading-tight">₹{price}</span>
           </div>
 
           {/* Interactive ADD / +/- Quantity Button */}
@@ -165,7 +165,7 @@ export const FoodCard = React.memo<FoodCardProps>(function FoodCard({
             {currentQuantity === 0 ? (
               <button
                 onClick={handleIncrement}
-                className="flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-[#FF462D]/15 to-[#FF6B4A]/15 hover:from-[#FF462D] hover:to-[#FF6B4A] text-[#FF6B4A] hover:text-white border border-[#FF462D]/40 hover:border-transparent text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:shadow-[#FF462D]/30 active:scale-95"
+                className="flex items-center gap-1 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-[#FF462D]/10 to-[#FF6B4A]/10 hover:from-[#FF462D] hover:to-[#FF6B4A] text-[#FF462D] hover:text-white border border-[#FF462D]/30 hover:border-transparent text-[11px] sm:text-xs font-bold transition-all duration-200 cursor-pointer shadow-xs hover:shadow-md hover:shadow-[#FF462D]/30 active:scale-95"
               >
                 <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>ADD</span>

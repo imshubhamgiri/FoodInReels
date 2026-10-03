@@ -20,7 +20,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D0D11] text-[#F8FAFC] selection:bg-[#FF462D]/30 selection:text-white relative">
+    <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#0D0D11] text-stone-900 dark:text-[#F8FAFC] selection:bg-[#FF462D]/30 selection:text-white relative transition-colors duration-200">
       {/* 1. Header & Navigation */}
       <Navbar 
         onSearch={handleSearch} 

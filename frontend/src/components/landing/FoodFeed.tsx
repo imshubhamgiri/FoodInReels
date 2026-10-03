@@ -161,42 +161,42 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
   }, [productsList, searchQuery, activeCategory]);
 
   return (
-    <section id="trending-feed" className="py-10 md:py-20 bg-[#0D0D11] relative">
+    <section id="trending-feed" className="py-10 md:py-20 bg-[#FAFAF9] dark:bg-[#0D0D11] relative transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-8">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF462D]/10 border border-[#FF462D]/30 text-xs font-semibold text-[#FF6B4A]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF462D]/10 border border-[#FF462D]/25 text-xs font-semibold text-[#FF462D]">
               <Flame className="w-3.5 h-3.5" />
               <span>Chef's Choice & Trending Cravings</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-heading text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-heading text-stone-900 dark:text-white tracking-tight">
               Trending <span className="gradient-text-coral">Deliciousness</span>
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm md:text-base max-w-xl">
+            <p className="text-stone-600 dark:text-slate-400 text-xs sm:text-sm md:text-base max-w-xl">
               Freshly prepared by top-rated artisanal kitchens. Savor the most ordered gourmet meals in your city.
             </p>
           </div>
 
           {/* Left/Right Scroll Buttons for Mobile/Tablet (< md) + Desktop Counter */}
           <div className="flex items-center justify-between md:justify-end gap-3 pt-1">
-            <span className="text-xs text-slate-400 font-medium">
-              <span className="text-white font-bold">{filteredProducts.length}</span> dishes found
+            <span className="text-xs text-stone-500 dark:text-slate-400 font-medium">
+              <span className="text-stone-900 dark:text-white font-bold">{filteredProducts.length}</span> dishes found
             </span>
 
             {/* Mobile/Tablet Horizontal Scroll Nav Buttons (< md) */}
             <div className="flex md:hidden items-center gap-1.5">
               <button
                 onClick={scrollLeft}
-                className="w-8 h-8 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-all active:scale-95 cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-white hover:bg-stone-100 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 flex items-center justify-center text-stone-700 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white transition-all active:scale-95 cursor-pointer shadow-xs"
                 aria-label="Scroll dishes left"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={scrollRight}
-                className="w-8 h-8 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-all active:scale-95 cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-white hover:bg-stone-100 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 flex items-center justify-center text-stone-700 dark:text-slate-300 hover:text-stone-900 dark:hover:text-white transition-all active:scale-95 cursor-pointer shadow-xs"
                 aria-label="Scroll dishes right"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -215,11 +215,11 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
         </div>
 
         {/* Swipe Hint Pill on Mobile (< md) */}
-        <div className="flex md:hidden items-center justify-between text-[11px] text-slate-400 mb-2 px-1">
-          <span className="flex items-center gap-1 text-[#FFB703]">
+        <div className="flex md:hidden items-center justify-between text-[11px] text-stone-500 dark:text-slate-400 mb-2 px-1">
+          <span className="flex items-center gap-1 text-[#D97706] dark:text-[#FFB703]">
             <Sparkles className="w-3 h-3" /> Scroll horizontally to explore
           </span>
-          <span className="text-slate-500">2-row feed</span>
+          <span className="text-stone-400 dark:text-slate-500">2-row feed</span>
         </div>
 
         {/* Dishes Grid: 
@@ -231,7 +231,7 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
             className="grid grid-rows-2 grid-flow-col auto-cols-[minmax(220px,260px)] sm:auto-cols-[280px] md:auto-cols-auto gap-3.5 sm:gap-4 md:gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 snap-x snap-mandatory md:snap-none md:grid-rows-none md:grid-flow-row md:grid-cols-3 lg:grid-cols-4 no-scrollbar"
           >
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="snap-start h-full bg-[#18181F] rounded-2xl p-3 sm:p-4 border border-white/5 space-y-3 min-w-[220px] md:min-w-0">
+              <div key={i} className="snap-start h-full bg-white dark:bg-[#18181F] rounded-2xl p-3 sm:p-4 border border-stone-200/80 dark:border-white/5 space-y-3 min-w-[220px] md:min-w-0 shadow-xs">
                 <Skeleton height="h-28 sm:h-36 md:h-44" className="w-full rounded-xl" />
                 <Skeleton height="h-4" className="w-3/4" />
                 <Skeleton height="h-3" className="w-1/2" />
@@ -243,12 +243,12 @@ export const FoodFeed: React.FC<FoodFeedProps> = ({ searchQuery = '', onAddToCar
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="text-center py-14 px-4 bg-[#18181F] rounded-3xl border border-white/10 max-w-md mx-auto">
+          <div className="text-center py-14 px-4 bg-white dark:bg-[#18181F] rounded-3xl border border-stone-200 dark:border-white/10 max-w-md mx-auto shadow-xs">
             <div className="w-12 h-12 rounded-2xl bg-[#FF462D]/15 text-[#FF462D] flex items-center justify-center mx-auto mb-3">
               <Utensils className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white mb-1">No dishes found</h3>
-            <p className="text-xs text-slate-400 mb-4">
+            <h3 className="text-base font-bold text-stone-900 dark:text-white mb-1">No dishes found</h3>
+            <p className="text-xs text-stone-500 dark:text-slate-400 mb-4">
               We couldn't find dishes matching "{searchQuery || activeCategory}". Try choosing another category!
             </p>
             <button

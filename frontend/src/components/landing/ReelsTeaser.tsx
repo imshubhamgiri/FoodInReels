@@ -19,9 +19,9 @@ import { Badge } from '../ui/Badge';
 export const ReelsTeaser: React.FC = () => {
   return (
     <section className="py-12 md:py-20 relative overflow-hidden">
-      {/* Background Lighting */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-[#FF462D]/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-[#FFB703]/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Background Lighting (Smooth GPU blurs) */}
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 bg-[#FF462D]/5 dark:bg-[#FF462D]/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-72 h-72 bg-[#FFB703]/5 dark:bg-[#FFB703]/10 rounded-full blur-2xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -144,16 +144,16 @@ export const ReelsTeaser: React.FC = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="absolute -bottom-4 right-2 sm:right-4 z-20 px-4 py-2.5 rounded-2xl bg-[#18181F]/90 backdrop-blur-xl border border-white/15 shadow-xl flex items-center gap-3 text-xs text-white"
+                className="absolute -bottom-4 right-2 sm:right-4 z-20 px-4 py-2.5 rounded-2xl bg-white/95 dark:bg-[#18181F]/90 backdrop-blur-md border border-stone-200 dark:border-white/15 shadow-xl flex items-center gap-3 text-xs text-stone-800 dark:text-white"
               >
                 <div className="flex -space-x-2">
-                  <div className="w-6 h-6 rounded-full bg-rose-500 border border-black flex items-center justify-center text-[10px] font-bold">R</div>
-                  <div className="w-6 h-6 rounded-full bg-amber-500 border border-black flex items-center justify-center text-[10px] font-bold">S</div>
-                  <div className="w-6 h-6 rounded-full bg-emerald-500 border border-black flex items-center justify-center text-[10px] font-bold">A</div>
+                  <div className="w-6 h-6 rounded-full bg-rose-500 border border-black flex items-center justify-center text-[10px] font-bold text-white">R</div>
+                  <div className="w-6 h-6 rounded-full bg-amber-500 border border-black flex items-center justify-center text-[10px] font-bold text-white">S</div>
+                  <div className="w-6 h-6 rounded-full bg-emerald-500 border border-black flex items-center justify-center text-[10px] font-bold text-white">A</div>
                 </div>
                 <div>
-                  <div className="font-semibold text-white">10,000+ Foodies</div>
-                  <div className="text-[10px] text-slate-400">Discovering dishes live</div>
+                  <div className="font-semibold text-stone-900 dark:text-white">10,000+ Foodies</div>
+                  <div className="text-[10px] text-stone-500 dark:text-slate-400">Discovering dishes live</div>
                 </div>
               </motion.div>
 
@@ -164,17 +164,17 @@ export const ReelsTeaser: React.FC = () => {
           {/* Right Column: Copy & Feature Highlights */}
           <div className="lg:col-span-6 space-y-6 order-1 lg:order-2">
             
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF462D]/10 border border-[#FF462D]/30 text-xs font-semibold text-[#FF6B4A]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF462D]/10 border border-[#FF462D]/25 text-xs font-semibold text-[#FF462D]">
               <Film className="w-3.5 h-3.5" />
               <span>Video-First Food Experience</span>
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-heading text-white tracking-tight leading-tight">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-heading text-stone-900 dark:text-white tracking-tight leading-tight">
                 Stop Guessing. <br />
                 <span className="gradient-text-coral">Watch the Sizzle Before Ordering.</span>
               </h2>
-              <p className="text-slate-300 text-base md:text-lg leading-relaxed font-normal">
+              <p className="text-stone-600 dark:text-slate-300 text-base md:text-lg leading-relaxed font-normal">
                 Never get disappointed by static food photos again. Scroll through authentic high-definition kitchen reels, see real portion sizes, and order directly in one tap.
               </p>
             </div>
@@ -182,32 +182,32 @@ export const ReelsTeaser: React.FC = () => {
             {/* Value Bullet Points */}
             <div className="space-y-3.5 pt-2">
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">Full HD Video Previews</h4>
-                  <p className="text-xs text-slate-400">See the exact dish cooking process, sauces, and cheese pulls.</p>
+                  <h4 className="text-sm font-bold text-stone-900 dark:text-white">Full HD Video Previews</h4>
+                  <p className="text-xs text-stone-500 dark:text-slate-400">See the exact dish cooking process, sauces, and cheese pulls.</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-lg bg-[#FFB703]/15 border border-[#FFB703]/30 flex items-center justify-center text-[#FFB703] shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-lg bg-[#FFB703]/15 border border-[#FFB703]/30 flex items-center justify-center text-[#D97706] dark:text-[#FFB703] shrink-0 mt-0.5">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">1-Click Instant Order</h4>
-                  <p className="text-xs text-slate-400">Add the exact dish shown in the video to your cart without searching.</p>
+                  <h4 className="text-sm font-bold text-stone-900 dark:text-white">1-Click Instant Order</h4>
+                  <p className="text-xs text-stone-500 dark:text-slate-400">Add the exact dish shown in the video to your cart without searching.</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-lg bg-[#FF462D]/15 border border-[#FF462D]/30 flex items-center justify-center text-[#FF6B4A] shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-lg bg-[#FF462D]/15 border border-[#FF462D]/30 flex items-center justify-center text-[#FF462D] shrink-0 mt-0.5">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">Real Community Reviews</h4>
-                  <p className="text-xs text-slate-400">Verified taste ratings, spice indicators, and genuine food lover tips.</p>
+                  <h4 className="text-sm font-bold text-stone-900 dark:text-white">Real Community Reviews</h4>
+                  <p className="text-xs text-stone-500 dark:text-slate-400">Verified taste ratings, spice indicators, and genuine food lover tips.</p>
                 </div>
               </div>
             </div>
@@ -215,7 +215,7 @@ export const ReelsTeaser: React.FC = () => {
             {/* CTA Button */}
             <div className="pt-2">
               <Link to="/reel">
-                <Button variant="default" size="lg" className="shadow-xl shadow-[#FF462D]/30 group">
+                <Button variant="default" size="lg" className="shadow-lg shadow-[#FF462D]/25 group">
                   <span>Explore Reel Discovery</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>

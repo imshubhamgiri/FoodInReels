@@ -35,7 +35,7 @@ const STATS = [
 
 export const StatsSection: React.FC = () => {
   return (
-    <section className="py-10 bg-[#121217] border-y border-white/[0.06]">
+    <section className="py-10 bg-[#F5F5F0] dark:bg-[#121217] border-y border-stone-200/80 dark:border-white/[0.06] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {STATS.map((stat, idx) => {
@@ -47,19 +47,19 @@ export const StatsSection: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: idx * 0.08 }}
-                className="flex items-center gap-3.5 p-3 sm:p-4 rounded-2xl bg-[#18181F]/50 border border-white/[0.04]"
+                className="flex items-center gap-3.5 p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#18181F]/50 border border-stone-200/80 dark:border-white/[0.04] shadow-xs"
               >
-                <div className={`w-11 h-11 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0 ${stat.color}`}>
+                <div className={`w-11 h-11 rounded-xl bg-stone-100 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 flex items-center justify-center shrink-0 ${stat.color}`}>
                   <IconComp className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xl sm:text-2xl font-extrabold font-heading text-white tracking-tight">
+                  <div className="text-xl sm:text-2xl font-extrabold font-heading text-stone-900 dark:text-white tracking-tight">
                     {stat.value}
                   </div>
-                  <div className="text-xs font-semibold text-slate-300">
+                  <div className="text-xs font-semibold text-stone-700 dark:text-slate-300">
                     {stat.label}
                   </div>
-                  <div className="text-[10px] text-slate-500 hidden sm:block">
+                  <div className="text-[10px] text-stone-500 dark:text-slate-500 hidden sm:block">
                     {stat.sublabel}
                   </div>
                 </div>

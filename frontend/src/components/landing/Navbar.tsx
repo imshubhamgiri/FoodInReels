@@ -75,12 +75,20 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Scroll listener for enhanced shadow & blur
+  // Scroll listener with RAF throttling & passive mode for smooth mobile scrolling
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrolled = window.scrollY > 20;
+          setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -121,8 +129,8 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
       className={cn(
         'sticky top-0 z-40 w-full transition-all duration-300',
         isScrolled 
-          ? 'bg-[#0D0D11]/95 backdrop-blur-xl border-b border-white/[0.08] shadow-2xl shadow-black/60 py-2.5' 
-          : 'bg-[#0D0D11]/80 backdrop-blur-md border-b border-white/[0.05] py-2.5 sm:py-3.5'
+          ? 'bg-white/95 dark:bg-[#0D0D11]/95 backdrop-blur-md border-b border-stone-200/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-2xl dark:shadow-black/60 py-2.5' 
+          : 'bg-white/80 dark:bg-[#0D0D11]/80 backdrop-blur-sm border-b border-stone-200/60 dark:border-white/[0.05] py-2.5 sm:py-3.5'
       )}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -141,10 +149,10 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
                 <Film className="w-4 h-4 sm:w-5 sm:h-5 text-white transform group-hover:rotate-12 transition-transform duration-300" />
               </div>
               <div className="flex flex-col">
-                <span className="font-heading font-extrabold text-base sm:text-lg md:text-xl tracking-tight text-white flex items-center leading-tight">
+                <span className="font-heading font-extrabold text-base sm:text-lg md:text-xl tracking-tight text-stone-900 dark:text-white flex items-center leading-tight">
                   Food<span className="text-[#FF462D]">In</span>Reels
                 </span>
-                <span className="text-[9px] tracking-widest text-[#FFB703] font-semibold uppercase hidden md:block">
+                <span className="text-[9px] tracking-widest text-[#D97706] dark:text-[#FFB703] font-semibold uppercase hidden md:block">
                   Taste The Sizzle
                 </span>
               </div>
@@ -154,12 +162,12 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
             <div className="relative hidden md:block" ref={desktopCityDropdownRef}>
               <button
                 onClick={() => setIsCityOpen(!isCityOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 hover:border-white/20 transition-all duration-200 text-xs lg:text-sm text-slate-200 cursor-pointer select-none"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200/80 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 transition-all duration-200 text-xs lg:text-sm text-stone-700 dark:text-slate-200 cursor-pointer select-none shadow-xs"
                 aria-label="Select delivery city"
               >
                 <MapPin className="w-3.5 h-3.5 text-[#FF462D] shrink-0" />
                 <span className="font-medium max-w-[100px] lg:max-w-[130px] truncate">{currentCity}</span>
-                <ChevronDown className={cn("w-3.5 h-3.5 text-slate-400 transition-transform duration-200", isCityOpen && "rotate-180")} />
+                <ChevronDown className={cn("w-3.5 h-3.5 text-stone-400 dark:text-slate-400 transition-transform duration-200", isCityOpen && "rotate-180")} />
               </button>
 
               <AnimatePresence>
@@ -169,21 +177,21 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 mt-2 w-72 bg-[#18181F] border border-white/15 rounded-2xl shadow-2xl shadow-black/80 overflow-hidden z-50 p-3"
+                    className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-[#18181F] border border-stone-200 dark:border-white/15 rounded-2xl shadow-xl shadow-stone-900/10 dark:shadow-black/80 overflow-hidden z-50 p-3"
                   >
-                    <div className="text-xs font-semibold text-slate-400 mb-2 px-1 flex items-center justify-between">
+                    <div className="text-xs font-semibold text-stone-500 dark:text-slate-400 mb-2 px-1 flex items-center justify-between">
                       <span>Delivery City</span>
-                      <span className="text-[10px] text-[#FF462D]">India</span>
+                      <span className="text-[10px] text-[#FF462D] font-bold">India</span>
                     </div>
 
                     <div className="relative mb-2">
-                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-slate-400" />
                       <input
                         type="text"
                         placeholder="Search city..."
                         value={citySearchQuery}
                         onChange={(e) => setCitySearchQuery(e.target.value)}
-                        className="w-full bg-[#121217] border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF462D]/50"
+                        className="w-full bg-stone-50 dark:bg-[#121217] border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#FF462D]/50"
                         autoFocus
                       />
                     </div>
@@ -196,8 +204,8 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
                           className={cn(
                             "w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-between cursor-pointer",
                             city === currentCity 
-                              ? "bg-[#FF462D]/15 text-[#FF6B4A] font-semibold" 
-                              : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                              ? "bg-[#FF462D]/10 text-[#FF462D] font-semibold" 
+                              : "text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-white/[0.06] hover:text-stone-900 dark:hover:text-white"
                           )}
                         >
                           <span>{city}</span>
@@ -216,7 +224,7 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
           <div className="hidden md:flex flex-1 max-w-xl relative">
             <form onSubmit={handleSearchSubmit} className="w-full relative">
               <div className="relative flex items-center w-full">
-                <Search className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                <Search className="absolute left-3.5 w-4 h-4 text-stone-400 dark:text-slate-400 pointer-events-none" />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -225,19 +233,19 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                   placeholder="Search restaurants, cuisines, or dishes..."
-                  className="w-full h-10 lg:h-11 bg-[#18181F] text-slate-100 placeholder:text-slate-500 pl-10 pr-16 rounded-xl border border-white/10 focus:border-[#FF462D]/60 focus:ring-2 focus:ring-[#FF462D]/20 focus:outline-none text-xs lg:text-sm transition-all duration-200"
+                  className="w-full h-10 lg:h-11 bg-stone-100/90 dark:bg-[#18181F] text-stone-900 dark:text-slate-100 placeholder:text-stone-400 dark:placeholder:text-slate-500 pl-10 pr-16 rounded-xl border border-stone-200/90 dark:border-white/10 focus:bg-white dark:focus:bg-[#18181F] focus:border-[#FF462D]/60 focus:ring-2 focus:ring-[#FF462D]/15 focus:outline-none text-xs lg:text-sm transition-all duration-200"
                 />
                 <div className="absolute right-3 flex items-center gap-1">
                   {searchQuery ? (
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="p-1 rounded text-slate-400 hover:text-white"
+                      className="p-1 rounded text-stone-400 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   ) : (
-                    <kbd className="hidden lg:inline-flex items-center px-2 py-0.5 text-[10px] font-mono text-slate-400 bg-white/[0.06] border border-white/10 rounded-md">
+                    <kbd className="hidden lg:inline-flex items-center px-2 py-0.5 text-[10px] font-mono text-stone-500 dark:text-slate-400 bg-stone-200/70 dark:bg-white/[0.06] border border-stone-300/80 dark:border-white/10 rounded-md">
                       ⌘K
                     </kbd>
                   )}
@@ -252,9 +260,9 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 6 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-[#18181F] border border-white/15 rounded-2xl p-4 shadow-2xl shadow-black/80 z-50 backdrop-blur-xl"
+                  className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#18181F] border border-stone-200 dark:border-white/15 rounded-2xl p-4 shadow-xl shadow-stone-900/10 dark:shadow-black/80 z-50 backdrop-blur-xl"
                 >
-                  <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                  <div className="text-[11px] font-semibold text-stone-500 dark:text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#FFB703]" />
                     Popular Searches
                   </div>
@@ -268,7 +276,7 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
                           setSearchQuery(query);
                           onSearch?.(query);
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-[#FF462D]/15 hover:text-[#FF6B4A] border border-white/5 hover:border-[#FF462D]/30 text-xs text-slate-300 transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-[#FF462D]/10 hover:text-[#FF462D] border border-stone-200 hover:border-[#FF462D]/30 text-xs text-stone-700 dark:bg-white/[0.04] dark:hover:bg-[#FF462D]/15 dark:hover:text-[#FF6B4A] dark:border-white/5 dark:text-slate-300 transition-all cursor-pointer"
                       >
                         {tag}
                       </button>
@@ -285,7 +293,7 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
             {/* Reels Discovery Button (Desktop only) */}
             <Link
               to="/reel"
-              className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#FF462D]/20 to-[#FFB703]/20 hover:from-[#FF462D]/30 hover:to-[#FFB703]/30 border border-[#FF462D]/30 text-xs font-semibold text-white transition-all duration-200"
+              className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#FF462D]/10 to-[#FFB703]/10 hover:from-[#FF462D]/20 hover:to-[#FFB703]/20 border border-[#FF462D]/30 text-xs font-semibold text-stone-800 dark:text-white transition-all duration-200"
             >
               <Film className="w-3.5 h-3.5 text-[#FF462D]" />
               <span>Food Reels</span>
@@ -295,7 +303,7 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
             {/* Cart Button */}
             <button
               onClick={openCart}
-              className="relative p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-[#18181F] hover:bg-slate-200 dark:hover:bg-[#22222D] border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shrink-0"
+              className="relative p-2 sm:p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200/80 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 text-stone-700 dark:text-slate-200 hover:text-stone-900 dark:hover:text-white transition-all cursor-pointer shrink-0 shadow-xs"
               aria-label="View shopping cart"
             >
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -313,7 +321,7 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 sm:p-2.5 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 hover:border-white/20 text-slate-300 hover:text-[#FFB703] transition-all cursor-pointer shrink-0"
+              className="p-2 sm:p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200/80 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 text-stone-700 dark:text-slate-300 hover:text-[#D97706] dark:hover:text-[#FFB703] transition-all cursor-pointer shrink-0 shadow-xs"
               aria-label="Toggle light and dark mode"
             >
               {theme === 'light' ? <Moon className="w-4 h-4 sm:w-5 sm:h-5" /> : <Sun className="w-4 h-4 sm:w-5 sm:h-5" />}
@@ -323,7 +331,7 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
             {isAuthenticated && user ? (
               <Link
                 to={user.userType === 'partner' ? '/partner/profile' : '/user/profile'}
-                className="flex items-center gap-1.5 sm:gap-2 p-1 sm:pl-1.5 sm:pr-3 sm:py-1 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 hover:border-white/20 transition-all text-xs text-white shrink-0"
+                className="flex items-center gap-1.5 sm:gap-2 p-1 sm:pl-1.5 sm:pr-3 sm:py-1 rounded-xl bg-stone-100 hover:bg-stone-200/80 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 transition-all text-xs text-stone-800 dark:text-white shrink-0 shadow-xs"
               >
                 <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-tr from-[#FF462D] to-[#FFB703] flex items-center justify-center text-white font-bold text-[11px] sm:text-xs">
                   {user.name ? user.name.charAt(0).toUpperCase() : <User className="w-3.5 h-3.5" />}
@@ -358,12 +366,12 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
           <div className="relative shrink-0" ref={mobileCityDropdownRef}>
             <button
               onClick={() => setIsCityOpen(!isCityOpen)}
-              className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-[#18181F] hover:bg-[#22222D] border border-white/10 hover:border-white/20 transition-all text-xs text-slate-200 cursor-pointer select-none shrink-0"
+              className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200/80 dark:bg-[#18181F] dark:hover:bg-[#22222D] border border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 transition-all text-xs text-stone-700 dark:text-slate-200 cursor-pointer select-none shrink-0 shadow-xs"
               aria-label="Select delivery city"
             >
               <MapPin className="w-3.5 h-3.5 text-[#FF462D] shrink-0" />
               <span className="font-medium max-w-[75px] xs:max-w-[95px] truncate">{currentCity}</span>
-              <ChevronDown className={cn("w-3 h-3 text-slate-400 transition-transform duration-200", isCityOpen && "rotate-180")} />
+              <ChevronDown className={cn("w-3 h-3 text-stone-400 dark:text-slate-400 transition-transform duration-200", isCityOpen && "rotate-180")} />
             </button>
 
             <AnimatePresence>
@@ -373,21 +381,21 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-0 mt-2 w-64 bg-[#18181F] border border-white/15 rounded-2xl shadow-2xl shadow-black/90 overflow-hidden z-50 p-3"
+                  className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-[#18181F] border border-stone-200 dark:border-white/15 rounded-2xl shadow-xl shadow-stone-900/10 dark:shadow-black/90 overflow-hidden z-50 p-3"
                 >
-                  <div className="text-[11px] font-semibold text-slate-400 mb-2 px-1 flex items-center justify-between">
+                  <div className="text-[11px] font-semibold text-stone-500 dark:text-slate-400 mb-2 px-1 flex items-center justify-between">
                     <span>Delivery City</span>
-                    <span className="text-[10px] text-[#FF462D]">India</span>
+                    <span className="text-[10px] text-[#FF462D] font-bold">India</span>
                   </div>
 
                   <div className="relative mb-2">
-                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400 dark:text-slate-400" />
                     <input
                       type="text"
                       placeholder="Search city..."
                       value={citySearchQuery}
                       onChange={(e) => setCitySearchQuery(e.target.value)}
-                      className="w-full bg-[#121217] border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF462D]/50"
+                      className="w-full bg-stone-50 dark:bg-[#121217] border border-stone-200 dark:border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#FF462D]/50"
                       autoFocus
                     />
                   </div>
@@ -400,8 +408,8 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
                         className={cn(
                           "w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center justify-between cursor-pointer",
                           city === currentCity 
-                            ? "bg-[#FF462D]/15 text-[#FF6B4A] font-semibold" 
-                            : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                            ? "bg-[#FF462D]/10 text-[#FF462D] font-semibold" 
+                            : "text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-white/[0.06] hover:text-stone-900 dark:hover:text-white"
                         )}
                       >
                         <span>{city}</span>
@@ -417,19 +425,19 @@ const mobileCityDropdownRef = useRef<HTMLDivElement>(null);
           {/* Mobile Search Bar */}
           <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-0">
             <div className="relative flex items-center w-full">
-              <Search className="absolute left-3 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+              <Search className="absolute left-3 w-3.5 h-3.5 text-stone-400 dark:text-slate-400 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search dishes or cuisines..."
-                className="w-full h-9 bg-[#18181F] text-slate-100 placeholder:text-slate-500 pl-8 pr-3 rounded-xl border border-white/10 focus:border-[#FF462D]/60 focus:outline-none text-xs transition-all"
+                className="w-full h-9 bg-stone-100/90 dark:bg-[#18181F] text-stone-900 dark:text-slate-100 placeholder:text-stone-400 dark:placeholder:text-slate-500 pl-8 pr-3 rounded-xl border border-stone-200/90 dark:border-white/10 focus:bg-white dark:focus:bg-[#18181F] focus:border-[#FF462D]/60 focus:outline-none text-xs transition-all"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 p-0.5 rounded text-slate-400 hover:text-white"
+                  className="absolute right-2.5 p-0.5 rounded text-stone-400 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white"
                 >
                   <X className="w-3 h-3" />
                 </button>
