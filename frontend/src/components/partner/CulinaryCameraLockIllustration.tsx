@@ -5,8 +5,16 @@ interface CulinaryCameraLockIllustrationProps {
   size?: number | string;
 }
 
+/**
+ * Minimalist Paper-Craft Culinary Camera & Partner Lock Illustration
+ * High-performance vector graphic:
+ * - Zero expensive SVG `<filter>` / `<feDropShadow>` matrices (GPU friendly)
+ * - Zero continuous SMIL `<animate>` loops (prevents continuous repaints)
+ * - Dual-theme support: pure paper white with subtle layered shadows in light mode,
+ *   and sleek midnight dark with cool sky-blue / cyan accents in dark mode.
+ */
 export const CulinaryCameraLockIllustration: React.FC<CulinaryCameraLockIllustrationProps> = ({
-  className = 'w-44 h-40 sm:w-52 sm:h-44',
+  className = 'w-40 h-36 sm:w-48 sm:h-42',
   size
 }) => {
   const inlineStyle = size ? { width: size, height: size } : undefined;
@@ -14,234 +22,253 @@ export const CulinaryCameraLockIllustration: React.FC<CulinaryCameraLockIllustra
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 400 340"
+      viewBox="0 0 320 260"
       fill="none"
       className={className}
       style={inlineStyle}
       role="img"
-      aria-label="Culinary Camera Lock Illustration"
+      aria-label="Culinary Camera Partner Access Illustration"
     >
       <defs>
-        {/* Ambient Glow Backdrop with Terracotta, Saffron, and Dark Blue Midnight undertones */}
-        <radialGradient id="culinaryGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#EA580C" stopOpacity="0.45" />
-          <stop offset="45%" stopColor="#F59E0B" stopOpacity="0.2" />
-          <stop offset="75%" stopColor="#1E3A8A" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#0B1329" stopOpacity="0" />
-        </radialGradient>
-
-        {/* Fiery Terracotta to Deep Saffron */}
-        <linearGradient id="terracottaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FB923C" />
-          <stop offset="45%" stopColor="#EA580C" />
-          <stop offset="100%" stopColor="#C2410C" />
+        {/* Subtle Paper Drop Shadow for Light Mode */}
+        <linearGradient id="paperLightBase" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="100%" stopColor="#F8FAFC" />
         </linearGradient>
 
-        {/* Saffron Amber Flame */}
-        <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FEF08A" />
-          <stop offset="50%" stopColor="#F59E0B" />
-          <stop offset="100%" stopColor="#D97706" />
-        </linearGradient>
-
-        {/* Midnight Blue & Metal Squircle */}
-        <linearGradient id="darkMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+        {/* Midnight Blue & Sky Gradient for Dark Mode */}
+        <linearGradient id="paperDarkBase" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#1E293B" />
-          <stop offset="40%" stopColor="#0F172A" />
-          <stop offset="100%" stopColor="#090D16" />
+          <stop offset="100%" stopColor="#0F172A" />
         </linearGradient>
 
-        {/* Subtle Cyan-Blue Accent Line */}
-        <linearGradient id="blueGlowAccent" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.8" />
-          <stop offset="50%" stopColor="#818CF8" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.9" />
+        {/* Sky-Blue to Cyan Gradient Accent */}
+        <linearGradient id="skyCyanAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38BDF8" />
+          <stop offset="100%" stopColor="#0284C7" />
         </linearGradient>
 
-        {/* Glassmorphic Drop Shadow */}
-        <filter id="cameraDropShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="12" stdDeviation="16" floodColor="#EA580C" floodOpacity="0.3" />
-          <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#0F172A" floodOpacity="0.6" />
-        </filter>
-
-        <filter id="subtleChefShadow" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000000" floodOpacity="0.3" />
-        </filter>
+        {/* Soft Radial Ambient Glow (CSS-rendered, no heavy SVG filter) */}
+        <radialGradient id="minimalGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.18" />
+          <stop offset="70%" stopColor="#0284C7" stopOpacity="0.04" />
+          <stop offset="100%" stopColor="#0F172A" stopOpacity="0" />
+        </radialGradient>
       </defs>
 
-      {/* Ambient Glow Backdrop */}
-      <circle cx="200" cy="170" r="150" fill="url(#culinaryGlow)" />
+      {/* 1. Ambient Background Halo */}
+      <circle cx="160" cy="135" r="95" fill="url(#minimalGlow)" />
 
-      {/* Decorative Orbit / Dashed Frame Rings */}
+      {/* 2. Concentric Minimal Orbit Rings (Paper Geometry) */}
       <circle
-        cx="200"
-        cy="170"
-        r="125"
-        stroke="#EA580C"
-        strokeOpacity="0.22"
+        cx="160"
+        cy="135"
+        r="105"
+        stroke="currentColor"
+        className="text-slate-200 dark:text-sky-500/20"
+        strokeWidth="1.2"
+        strokeDasharray="4 6"
+      />
+      <circle
+        cx="160"
+        cy="135"
+        r="82"
+        stroke="currentColor"
+        className="text-slate-300 dark:text-sky-400/25"
+        strokeWidth="1"
+      />
+
+      {/* 3. Floating Culinary Geometry Elements */}
+      {/* Top Left Sparkle */}
+      <path
+        d="M75 58 L77 66 L85 68 L77 70 L75 78 L73 70 L65 68 L73 66 Z"
+        className="fill-sky-400 dark:fill-sky-400 opacity-80"
+      />
+      {/* Top Right Mini Dot */}
+      <circle cx="245" cy="62" r="3.5" className="fill-blue-500 dark:fill-sky-300 opacity-70" />
+      {/* Bottom Left Dot */}
+      <circle cx="62" cy="175" r="2.5" className="fill-slate-300 dark:fill-sky-500 opacity-60" />
+      {/* Bottom Right Sparkle */}
+      <path
+        d="M255 180 L256.5 186 L262 187.5 L256.5 189 L255 195 L253.5 189 L248 187.5 L253.5 186 Z"
+        className="fill-cyan-400 dark:fill-cyan-400 opacity-70"
+      />
+
+      {/* 4. Layered Paper Shadow (Offset bottom card) */}
+      <rect
+        x="73"
+        y="83"
+        width="174"
+        height="124"
+        rx="26"
+        className="fill-slate-200/70 dark:fill-black/50"
+      />
+
+      {/* 5. Main Paper Camera Chassis */}
+      <rect
+        x="70"
+        y="78"
+        width="174"
+        height="120"
+        rx="24"
+        className="fill-white dark:fill-[#111A2E] stroke-slate-200 dark:stroke-sky-500/30"
         strokeWidth="1.5"
-        strokeDasharray="6 6"
-      />
-      <circle
-        cx="200"
-        cy="170"
-        r="98"
-        stroke="#38BDF8"
-        strokeOpacity="0.2"
-        strokeWidth="1"
-        strokeDasharray="3 5"
-      />
-      <circle
-        cx="200"
-        cy="170"
-        r="75"
-        stroke="#F59E0B"
-        strokeOpacity="0.15"
-        strokeWidth="1"
       />
 
-      {/* Floating Sparkles & Culinary Stars */}
-      <circle cx="100" cy="85" r="3" fill="#F59E0B" />
-      <path
-        d="M100 73 L102 83 L112 85 L102 87 L100 97 L98 87 L88 85 L98 83 Z"
-        fill="#FEF08A"
-        opacity="0.9"
+      {/* 6. Paper Flash / Top Viewfinder Bar */}
+      <rect
+        x="92"
+        y="66"
+        width="46"
+        height="15"
+        rx="6"
+        className="fill-slate-100 dark:fill-[#162238] stroke-slate-200 dark:stroke-sky-500/30"
+        strokeWidth="1.2"
       />
-      <circle cx="300" cy="95" r="2.5" fill="#38BDF8" />
-      <path
-        d="M300 85 L301.5 93 L310 95 L301.5 97 L300 105 L298.5 97 L290 95 L298.5 93 Z"
-        fill="#F59E0B"
-        opacity="0.9"
+      <circle
+        cx="115"
+        cy="73.5"
+        r="3"
+        className="fill-sky-500 dark:fill-sky-400"
       />
-      <circle cx="80" cy="225" r="2.5" fill="#38BDF8" opacity="0.7" />
-      <circle cx="320" cy="215" r="3" fill="#EA580C" opacity="0.8" />
 
-      {/* Main Camera Body Container (Rounded Modern Squircle) */}
-      <g filter="url(#cameraDropShadow)">
-        {/* Base dark midnight/slate chassis */}
+      {/* 7. Minimalist Camera Lens (Concentric Layered Paper Rings) */}
+      {/* Outer Lens Bezel */}
+      <circle
+        cx="145"
+        cy="138"
+        r="40"
+        className="fill-slate-50 dark:fill-[#0E1526] stroke-slate-200 dark:stroke-sky-500/30"
+        strokeWidth="1.5"
+      />
+      {/* Middle Ring */}
+      <circle
+        cx="145"
+        cy="138"
+        r="32"
+        className="fill-white dark:fill-[#131E35] stroke-sky-500/30 dark:stroke-sky-400/40"
+        strokeWidth="1.2"
+      />
+      {/* Inner Lens Core */}
+      <circle
+        cx="145"
+        cy="138"
+        r="22"
+        className="fill-slate-100 dark:fill-[#0A101D]"
+      />
+      {/* Glass Glint Cutout */}
+      <circle
+        cx="145"
+        cy="138"
+        r="14"
+        fill="url(#skyCyanAccent)"
+        opacity="0.25"
+      />
+      <circle
+        cx="139"
+        cy="132"
+        r="4.5"
+        className="fill-white dark:fill-sky-200 opacity-90"
+      />
+
+      {/* 8. Chef Toque (Hat) Minimal Fold Line Art on Top */}
+      <g className="text-slate-700 dark:text-sky-300">
+        {/* Hat Base Band */}
         <rect
-          x="110"
-          y="105"
-          width="180"
-          height="135"
-          rx="34"
-          fill="url(#darkMetal)"
-          stroke="#334155"
-          strokeWidth="2"
+          x="152"
+          y="68"
+          width="48"
+          height="7"
+          rx="3"
+          className="fill-slate-100 dark:fill-[#192742] stroke-slate-300 dark:stroke-sky-400/40"
+          strokeWidth="1"
         />
-        {/* Inner high-heat & cyan rim glow */}
-        <rect
-          x="112"
-          y="107"
-          width="176"
-          height="131"
-          rx="32"
-          stroke="url(#blueGlowAccent)"
+        {/* Hat Puffs */}
+        <path
+          d="M156 68 C150 60, 153 46, 164 45 C165 38, 178 33, 186 36 C194 34, 204 40, 205 48 C213 52, 214 63, 200 68 Z"
+          className="fill-white dark:fill-[#162238] stroke-slate-300 dark:stroke-sky-400/50"
           strokeWidth="1.2"
-          strokeOpacity="0.75"
+          strokeLinejoin="round"
         />
-      </g>
-
-      {/* Video Camera Lens Assembly */}
-      <circle cx="178" cy="172" r="46" fill="#0A0F1D" stroke="#334155" strokeWidth="2" />
-      <circle
-        cx="178"
-        cy="172"
-        r="38"
-        fill="#111827"
-        stroke="#EA580C"
-        strokeWidth="1.5"
-        strokeOpacity="0.7"
-      />
-      {/* Inner Glass Aperture with Terracotta / Blue Refraction */}
-      <circle cx="178" cy="172" r="28" fill="url(#terracottaGrad)" opacity="0.3" />
-      <circle cx="178" cy="172" r="20" fill="#050811" />
-      <circle cx="173" cy="167" r="7" fill="#FFFFFF" opacity="0.45" />
-
-      {/* Recording / REC Indicator in Camera Corner */}
-      <circle cx="138" cy="132" r="5" fill="#EF4444">
-        <animate attributeName="opacity" values="1;0.4;1" dur="1.8s" repeatCount="indefinite" />
-      </circle>
-      <rect x="148" y="128" width="22" height="8" rx="4" fill="#334155" opacity="0.8" />
-
-      {/* Chef Toque (Hat) Crown on Top of the Camera */}
-      <g filter="url(#subtleChefShadow)">
-        {/* Base golden band of chef hat resting elegantly on the camera */}
-        <path d="M152 98 C152 93, 208 93, 208 98 L206 108 L154 108 Z" fill="url(#amberGrad)" />
-        {/* Chef Hat Puffs */}
+        {/* Subtle Hat Crease lines */}
         <path
-          d="M142 98 C134 90, 138 72, 155 70 C155 60, 172 49, 185 51 C198 48, 215 56, 218 68 C232 72, 235 90, 226 98 Z"
-          fill="#FFFFFF"
-        />
-        {/* Hat folds / shadow contours */}
-        <path
-          d="M165 72 C168 82, 169 94, 168 98"
-          stroke="#E2E8F0"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M185 54 C186 68, 186 86, 186 98"
-          stroke="#CBD5E1"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M205 70 C203 80, 201 92, 199 98"
-          stroke="#E2E8F0"
-          strokeWidth="2.5"
+          d="M172 46 V66 M184 42 V66 M195 48 V66"
+          className="stroke-slate-200 dark:stroke-sky-400/30"
+          strokeWidth="1"
           strokeLinecap="round"
         />
       </g>
 
-      {/* Partner Lock Security Badge Overlay (Front Right) */}
-      <g filter="url(#cameraDropShadow)">
-        {/* Shield / Badge Base */}
-        <rect x="232" y="160" width="62" height="66" rx="18" fill="url(#terracottaGrad)" />
+      {/* 9. Minimalist Floating Security Lock Badge (Paper Card Layer) */}
+      <g>
+        {/* Badge Shadow Offset */}
         <rect
-          x="234"
-          y="162"
-          width="58"
-          height="62"
+          x="197"
+          y="127"
+          width="50"
+          height="54"
           rx="16"
-          stroke="#FEF08A"
-          strokeWidth="1.5"
-          strokeOpacity="0.8"
+          className="fill-slate-200/80 dark:fill-black/60"
         />
-
+        {/* Badge Body */}
+        <rect
+          x="194"
+          y="124"
+          width="50"
+          height="54"
+          rx="15"
+          fill="url(#skyCyanAccent)"
+          className="stroke-white dark:stroke-sky-300/40"
+          strokeWidth="1.5"
+        />
         {/* Padlock Shackle */}
         <path
-          d="M253 180 V173 C253 167.5 257.5 163 263 163 C268.5 163 273 167.5 273 173 V180"
+          d="M211 143 V136 C211 131.5, 215 128, 219 128 C223 128, 227 131.5, 227 136 V143"
           stroke="#FFFFFF"
-          strokeWidth="3"
+          strokeWidth="2.5"
           strokeLinecap="round"
           fill="none"
         />
         {/* Padlock Body */}
-        <rect x="249" y="180" width="28" height="22" rx="6" fill="#FFFFFF" />
-        {/* Keyhole / Star */}
-        <circle cx="263" cy="189" r="3" fill="#C2410C" />
-        <path d="M263 190 L263 195" stroke="#C2410C" strokeWidth="2.5" strokeLinecap="round" />
+        <rect
+          x="208"
+          y="143"
+          width="22"
+          height="18"
+          rx="5"
+          fill="#FFFFFF"
+        />
+        {/* Padlock Keyhole */}
+        <circle cx="219" cy="150" r="2.2" fill="#0284C7" />
+        <path
+          d="M219 151 L219 155"
+          stroke="#0284C7"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
       </g>
 
-      {/* Food Steam / Savor Whiffs */}
-      <path
-        d="M255 125 C260 115, 252 108, 258 98"
-        stroke="url(#amberGrad)"
-        strokeWidth="3"
+      {/* 10. Clean Paper Corner Accent */}
+      <line
+        x1="82"
+        y1="92"
+        x2="94"
+        y2="92"
+        className="stroke-slate-300 dark:stroke-sky-500/40"
+        strokeWidth="1.5"
         strokeLinecap="round"
-        opacity="0.85"
       />
-      <path
-        d="M268 132 C273 122, 266 116, 272 106"
-        stroke="url(#terracottaGrad)"
-        strokeWidth="2.5"
+      <line
+        x1="82"
+        y1="92"
+        x2="82"
+        y2="104"
+        className="stroke-slate-300 dark:stroke-sky-500/40"
+        strokeWidth="1.5"
         strokeLinecap="round"
-        opacity="0.75"
       />
     </svg>
   );
 };
 
 export default CulinaryCameraLockIllustration;
-
