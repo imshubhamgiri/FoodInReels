@@ -1,38 +1,28 @@
-import { Navigation } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import FormInput from './FormInput';
 
-const AddressInput = ({ initialData, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    postalCode: '',
-    address: '',
-    locality: '',
-    city: '',
-    state: '',
-    landmark: '',
-    alternatePhone: '',
-    label: 'Home',
-  });
+const getInitialForm = (data) => ({
+  fullName: data?.fullName || '',
+  phone: data?.phone || '',
+  postalCode: data?.postalCode || '',
+  address: data?.address || '',
+  locality: data?.locality || '',
+  city: data?.city || '',
+  state: data?.state || '',
+  landmark: data?.landmark || '',
+  alternatePhone: data?.alternatePhone || '',
+  label: data?.label || 'Home',
+});
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        fullName: initialData.fullName || '',
-        phone: initialData.phone || '',
-        postalCode: initialData.postalCode || '',
-        locality: initialData.locality || '',
-        address: initialData.address || '',
-        city: initialData.city || '',
-        state: initialData.state || '',
-        landmark: initialData.landmark || '',
-        alternatePhone: initialData.alternatePhone || '',
-        label: initialData.label || 'Home',
-      });
-    }
-  }, [initialData]);
+const AddressInput = ({ initialData, onSave, onCancel }) => {
+  const [formData, setFormData] = useState(() => getInitialForm(initialData));
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
+
+  if (initialData !== prevInitialData) {
+    setPrevInitialData(initialData);
+    setFormData(getInitialForm(initialData));
+  }
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
