@@ -258,7 +258,7 @@ const Reel: React.FC = () => {
 
         {/* Unified Authentication Required Popup */}
         {!isAuthLoading && !isAuthenticated ? (
-          <LoginModal isOpen={true} />
+          <LoginModal isOpen={true} onClose={null} />
         ) : null}
 
         {!isInitialLoading && videos.length === 0 ? (
