@@ -384,7 +384,7 @@ export const CartPage = () => {
                 {/* Checkout CTA */}
                 <button
                   onClick={() => navigate('/checkout')}
-                  className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#FF462D] to-[#FF6B4A] hover:from-[#E03E26] hover:to-[#FF462D] text-white font-bold text-sm sm:text-base shadow-lg shadow-[#FF462D]/30 hover:shadow-[#FF462D]/40 transition-all flex items-center justify-between cursor-pointer active:scale-98"
+                  className="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#FF462D] to-[#FF6B4A] hover:from-[#E03E26] hover:to-[#FF462D] text-white font-bold text-sm sm:text-base shadow-lg shadow-[#FF462D]/30 hover:shadow-[#FF462D]/40 transition-all flex items-center justify-between cursor-pointer active:scale-[0.98]"
                 >
                   <span>Proceed to Checkout</span>
                   <ArrowRight className="w-5 h-5" />

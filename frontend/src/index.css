@@ -21,7 +21,7 @@
   --color-brand-border-subtle: rgba(255, 255, 255, 0.05);
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+@variant dark (&:where(.dark, .dark *));
 
 @layer base {
   body {
